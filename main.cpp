@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #define SIZE 23
-#define SGN(x) (x==0) ? 0 : ((x>0) ? 1 : -1)
 
 class Point {
 public:
@@ -30,7 +29,8 @@ public:
     }
   }
 
-  void solve(std::list<Point>& path, Point now) {
+  int solve(std::list<Point>& path, Point now) {
+    int soluciones = 0;
     std::list<Point> sol;
     sol.push_back(now);
     setCost(now, 0);
@@ -45,10 +45,13 @@ public:
         if (getCost(*it) == std::numeric_limits<int>::max() && getMap(*it) != -1)  {
           setCost(*it, getCost(s) + 1);
           sol.push_back(*it);
-          if( getMap(*it) == 0 && getCost(*it) < minD) {
+          if (getMap(*it) == 0 && getCost(*it) == minD) {
+            soluciones++;
+          } else if( getMap(*it) == 0 && getCost(*it) < minD) {
             minD = getCost(*it);
             path.clear();
             path.push_front(*it);
+            soluciones = 1;
           }
         }
       }
@@ -68,18 +71,18 @@ public:
         }
       }
     }
-
+    return soluciones;
   }
 
-void setCost(Point p, int newCost) {
+  void setCost(Point p, int newCost) {
     cost[p.x][p.y] = newCost;
-}
-int getCost(Point p) {
-  return cost[p.x][p.y];
-}
-int getMap(Point p) {
-  return map[p.x][p.y];
-}
+  }
+  int getCost(Point p) {
+    return cost[p.x][p.y];
+  }
+  int getMap(Point p) {
+    return map[p.x][p.y];
+  }
 private:
 
   std::list<Point> adyacente(Point now) {
@@ -94,9 +97,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i+k][j] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i+mov,j));
-      }
+      if(flag)
+      ady.push_back(Point(i+mov,j));
     }
 
     if (i - mov >= 0) {
@@ -104,9 +106,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i-k][j] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i-mov,j));
-      }
+      if(flag)
+      ady.push_back(Point(i-mov,j));
     }
 
     if (j + mov <= SIZE - 1) {
@@ -114,9 +115,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i][j+k] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i,j+mov));
-      }
+      if(flag)
+      ady.push_back(Point(i,j+mov));
     }
 
     if (j - mov >= 0) {
@@ -124,9 +124,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i][j-k] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i,j-mov));
-      }
+      if(flag)
+      ady.push_back(Point(i,j-mov));
     }
 
     if (i + mov <= SIZE - 1 && j + mov <= SIZE - 1) {
@@ -134,9 +133,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i+k][j+k] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i+mov,j+mov));
-      }
+      if(flag)
+      ady.push_back(Point(i+mov,j+mov));
     }
 
     if (i - mov >= 0 && j + mov <= SIZE - 1) {
@@ -144,9 +142,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i-k][j+k] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i-mov,j+mov));
-      }
+      if(flag)
+      ady.push_back(Point(i-mov,j+mov));
     }
 
     if (i + mov <= SIZE - 1 && j - mov >= 0) {
@@ -154,9 +151,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i+k][j-k] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i+mov,j-mov));
-      }
+      if(flag)
+      ady.push_back(Point(i+mov,j-mov));
     }
 
     if (i - mov >= 0 && j - mov >= 0) {
@@ -164,9 +160,8 @@ private:
       for(int k = 1; k <= mov-1; k++) {
         if (map[i-k][j-k] == 0) flag = false;
       }
-      if(flag) {
-        ady.push_back(Point(i-mov,j-mov));
-      }
+      if(flag)
+      ady.push_back(Point(i-mov,j-mov));
     }
 
     return ady;
@@ -178,26 +173,36 @@ private:
 
 
 int main() {
-  Klondike lab(MAPA);
+  Klondike lab(MALOMAPA);
   std::list<Point> sol;
-  Point start((SIZE-1)/2,(SIZE-1)/2);
-  lab.solve(sol, start);
+  std::cout << lab.solve(sol, Point((SIZE-1)/2,(SIZE-1)/2)) << std::endl;
 
   for (unsigned int i = 0; i < SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
-      printf("%4d", MAPA[i][j]);
+      printf("%4d", MALOMAPA[i][j]);
     }
     printf("\n");
   }
-   for (unsigned int i = 0; i < SIZE; i++) {
-     for (unsigned int j = 0; j < SIZE; j++) {
-       printf("%4d", (lab.getCost(Point(i,j)) == std::numeric_limits<int>::max()) ? -1 : lab.getCost(Point(i,j)));
-     }
-     printf("\n");
-   }
+  for (unsigned int i = 0; i < SIZE; i++) {
+    for (unsigned int j = 0; j < SIZE; j++) {
+      printf("%4d", (lab.getCost(Point(i,j)) == std::numeric_limits<int>::max()) ? -1 : lab.getCost(Point(i,j)));
+    }
+    printf("\n");
+  }
 
   for (std::list<Point>::const_iterator it = sol.begin(); it != sol.end(); ++it){
     std::cout << it->x << " " << it->y << std::endl;
   }
+
+  for (unsigned int i = 0; i < SIZE; i++) {
+    for (unsigned int j = 0; j < SIZE; j++) {
+      if (lab.getMap(Point(i,j)) != 0 || lab.getCost(Point(i,j)) == std::numeric_limits<int>::max())
+      printf("%4c", '-');
+      else
+      printf("%4d", lab.getCost(Point(i,j)));
+    }
+    printf("\n");
+  }
+
 
 }
