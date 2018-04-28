@@ -8,10 +8,10 @@ CFLAGS=-lm -std=c++11 -Wall
 TARGET=main
 
 #Dependencias (archivo.h)
-DEPS = 
+DEPS = Klondike.hpp
 
 #Objetos (archivo.o)
-OBJ = $(TARGET).o
+OBJ = $(TARGET).o Klondike.o
 
 
 #Compila todos los archivos objeto
