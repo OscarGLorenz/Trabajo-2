@@ -76,6 +76,9 @@ std::list<Point> Klondike::solve(Point start) {
     }
   }
 
+  if (path.empty())
+    return path;
+
   // Recorrer el camino hacia atrás desde la meta
   for(int c = minD, d = minD; c > 0; c--) {
     // Buscar por el mapa

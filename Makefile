@@ -2,7 +2,7 @@
 CC=g++
 
 #Flags
-CFLAGS=-lm -std=c++11 -Wall
+CPPFLAGS= -lm -std=c++11 -Wall
 
 #Objetivo
 TARGET=main
@@ -11,16 +11,15 @@ TARGET=main
 DEPS = Klondike.hpp
 
 #Objetos (archivo.o)
-OBJ = $(TARGET).o Klondike.o
-
+OBJ =  Klondike.o $(TARGET).o
 
 #Compila todos los archivos objeto
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) -c -o $@ $< 
 
 #Linkea todos los archivos objeto
 $(TARGET): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 #Borra los archivos objeto
 clean:
