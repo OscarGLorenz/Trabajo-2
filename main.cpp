@@ -10,12 +10,13 @@
 int main() {
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
-  std::uniform_int_distribution<int> distribution(1,9);
+  //std::uniform_int_distribution<int> distribution(1,9);
+  std::discrete_distribution<int> distribution {5,5,5,5,4,4,4,2,2};
 
   for (unsigned int i = 0; i < SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
       if (MAPA[i][j] > 0)
-        MAPA[i][j] = distribution(generator);
+        MAPA[i][j] = distribution(generator)+1;
     }
   }
 

@@ -15,11 +15,11 @@ OBJ =  Klondike.o $(TARGET).o
 
 #Compila todos los archivos objeto
 %.o: %.c $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $< 
+	$(CC) $(CPPFLAGS) -c -o $@ $< 
 
 #Linkea todos los archivos objeto
 $(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CPPFLAGS) -o $@ $^
 
 #Borra los archivos objeto
 clean:
