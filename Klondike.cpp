@@ -7,9 +7,11 @@
 /*
  *  Constructor
  * --------------------------------------------------------
- *   Genera un punto con las coordenadas x e y dados
+ *   Genera un punto con las coordenadas x e y dados.
+ *   Es opcional una dirección
  */
 Point::Point(short X, short Y) : x(X), y(Y) {}
+Point::Point(short X, short Y, Direction d) : x(X), y(Y), dir(d) {}
 
 /*
  *  Operador ==
@@ -160,31 +162,32 @@ std::list<Point> Klondike::solve(Point start) {
       if (map[i+k][j] == 0)
       flag = false;
     }
-    if(flag)
+    if(flag && map[i+mov][j] != -1)
     ady.push_back(Point(i+mov,j));
   }
 
   // Dirección NORTE
   if (i - mov >= 0) { // No salirse del tablero
     flag = true;
+    // Mirar si nos pasamos por alguna casilla de 0 antes de llegar a la meta
     for(int k = 1; k <= mov-1; k++) {
       if (map[i-k][j] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i-mov,j));
+    //Añade a la lista si es todo correcto
+    if(flag && map[i-mov][j] != -1)
+    ady.push_back(Point(i-mov,j,Direction::NORTH));
   }
 
   // Dirección ESTE
-  if (j + mov <= SIZE - 1) { // No salirse del tablero
+  if (j + mov <= SIZE - 1) {
     flag = true;
-    // Mirar si nos pasamos por alguna casilla de 0 antes de llegar a la meta
     for(int k = 1; k <= mov-1; k++) {
       if (map[i][j+k] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i,j+mov)); //Añade a la lista si es todo correcto
+    if(flag && map[i][j+mov] != -1)
+    ady.push_back(Point(i,j+mov,Direction::EAST));
   }
 
   // Dirección OESTE
@@ -194,8 +197,8 @@ std::list<Point> Klondike::solve(Point start) {
       if (map[i][j-k] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i,j-mov));
+    if(flag && map[i][j-mov] != -1)
+    ady.push_back(Point(i,j-mov,Direction::WEST));
   }
 
   // Dirección SUDESTE
@@ -205,8 +208,8 @@ std::list<Point> Klondike::solve(Point start) {
       if (map[i+k][j+k] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i+mov,j+mov));
+    if(flag && map[i+mov][j+mov] != -1)
+    ady.push_back(Point(i+mov,j+mov,Direction::SOUTHEAST));
   }
 
   // Dirección NORESTE
@@ -216,8 +219,8 @@ std::list<Point> Klondike::solve(Point start) {
       if (map[i-k][j+k] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i-mov,j+mov));
+    if(flag && map[i-mov][j+mov] != -1)
+    ady.push_back(Point(i-mov,j+mov,Direction::NORTHEAST));
   }
 
   // Dirección SUROESTE
@@ -227,8 +230,8 @@ std::list<Point> Klondike::solve(Point start) {
       if (map[i+k][j-k] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i+mov,j-mov));
+    if(flag && map[i+mov][j-mov] != -1)
+    ady.push_back(Point(i+mov,j-mov,Direction::SOUTHWEST));
   }
 
   // Dirección NOROESTE
@@ -238,8 +241,8 @@ std::list<Point> Klondike::solve(Point start) {
       if (map[i-k][j-k] == 0)
       flag = false;
     }
-    if(flag)
-    ady.push_back(Point(i-mov,j-mov));
+    if(flag && map[i-mov][j-mov] != -1)
+    ady.push_back(Point(i-mov,j-mov,Direction::NORTHWEST));
   }
 
   return ady;
