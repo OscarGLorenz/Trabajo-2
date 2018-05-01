@@ -78,6 +78,9 @@ std::list<Point> Klondike::solve(Point start) {
     }
   }
 
+  if (path.empty())
+    return path;
+
   // Recorrer el camino hacia atrás desde la meta
   for(int c = minD, d = minD; c > 0; c--) {
     // Buscar por el mapa
@@ -163,7 +166,7 @@ std::list<Point> Klondike::solve(Point start) {
       flag = false;
     }
     if(flag && map[i+mov][j] != -1)
-    ady.push_back(Point(i+mov,j));
+    ady.push_back(Point(i+mov,j,Direction::SOUTH));
   }
 
   // Dirección NORTE
