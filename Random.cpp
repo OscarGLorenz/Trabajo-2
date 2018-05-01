@@ -55,7 +55,7 @@ int main() {
 
   // Abrir plantilla
   std::fstream input;
-  input.open ("empty.bmp", std::fstream::in | std::fstream::binary);
+  input.open ("graphics/empty.bmp", std::fstream::in | std::fstream::binary);
 
   // Saltar cabecera del bmp
   input.seekg(139);
@@ -82,6 +82,7 @@ int main() {
 
         // Generar nombre del archivo
         std::string str;
+        str += "graphics/";
         str.push_back( (char) MAPA[a][b] + '0');
         if (a == 11 && b == 11) // El del centro va al revés
         str.push_back('N');
@@ -148,7 +149,7 @@ int main() {
 
   // Abrir archivo destino
   std::fstream output;
-  output.open ("img.bmp", std::fstream::out | std::fstream::binary);
+  output.open ("graphics/img.bmp", std::fstream::out | std::fstream::binary);
 
   // Escribir cabecera
   output.write(bmpfileheader,14);

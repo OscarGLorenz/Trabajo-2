@@ -166,7 +166,7 @@ std::list<Point> Klondike::solve(Point start) {
       flag = false;
     }
     if(flag && map[i+mov][j] != -1)
-    ady.push_back(Point(i+mov,j));
+    ady.push_back(Point(i+mov,j,Direction::SOUTH));
   }
 
   // Dirección NORTE
