@@ -2,26 +2,14 @@
 CC=g++
 
 #Flags
-CFLAGS=-lm -std=c++11 -Wall
+CPPFLAGS= -lm -std=c++11 -Wall -Isrc -lm -lGL -lGLU -lglut
 
 #Objetivo
-TARGET=main
+TARGET=Explorador
 
-#Dependencias (archivo.h)
-DEPS = Klondike.hpp
-
-#Objetos (archivo.o)
-OBJ = $(TARGET).o Klondike.o
-
-
-#Compila todos los archivos objeto
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-#Linkea todos los archivos objeto
-$(TARGET): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+all:
+	$(CC) $(TARGET).cpp src/Klondike.cpp $(CPPFLAGS) -o $(TARGET)
 
 #Borra los archivos objeto
 clean:
-	rm -f *.o
+	rm -f *.o $(TARGET) src/*.o

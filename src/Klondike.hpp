@@ -17,6 +17,9 @@
 // Tamaño del Laberinto
 #define SIZE 23
 
+enum class Direction {
+  NORTH, EAST, SOUTH, WEST, NORTHEAST, NORTHWEST, SOUTHWEST, SOUTHEAST, NONE
+};
 /*
  *  Clase: Point
  * --------------------------------------------------------
@@ -28,9 +31,11 @@ public:
   /*
    *  Constructor
    * --------------------------------------------------------
-   *   Genera un punto con las coordenadas x e y dados
+   *   Genera un punto con las coordenadas x e y dados.
+   *   Es opcional una dirección
    */
   Point(short X, short Y);
+  Point(short X, short Y, Direction dir);
 
   /*
    *  Operador ==
@@ -41,6 +46,7 @@ public:
 
   short x; // Primer índice
   short y; // Segundo índice
+  Direction dir; //Variable auxiliar
 };
 
 /*
