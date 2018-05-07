@@ -5,29 +5,29 @@
 #include <list>
 
 /*
- *  Constructor
- * --------------------------------------------------------
- *   Genera un punto con las coordenadas x e y dados.
- *   Es opcional una dirección
- */
+*  Constructor
+* --------------------------------------------------------
+*   Genera un punto con las coordenadas x e y dados.
+*   Es opcional una dirección
+*/
 Point::Point(short X, short Y) : x(X), y(Y) {}
 Point::Point(short X, short Y, Direction d) : x(X), y(Y), dir(d) {}
 
 /*
- *  Operador ==
- * --------------------------------------------------------
- *   Comprueba si dos puntos son iguales
- */
+*  Operador ==
+* --------------------------------------------------------
+*   Comprueba si dos puntos son iguales
+*/
 bool Point::operator==(Point other) {
   return (this->x == other.x) && (this->y == other.y);
 }
 
 /*
- *  Constructor
- * --------------------------------------------------------
- *   Genera un objeto Klondike en el que se guarda el mapa dado
- *   inicializa además la matriz de distancias al máximo
- */
+*  Constructor
+* --------------------------------------------------------
+*   Genera un objeto Klondike en el que se guarda el mapa dado
+*   inicializa además la matriz de distancias al máximo
+*/
 Klondike::Klondike(short klondikeMap[][SIZE]) {
   for (int i = 0; i < SIZE; i++) {
     for (int j = 0; j < SIZE; j++) {
@@ -38,120 +38,160 @@ Klondike::Klondike(short klondikeMap[][SIZE]) {
 }
 
 /*
- *  Función: solve
- * --------------------------------------------------------
- *   Resuelve el mapa, desde el punto dado, en la lista se guarda el camino a la
- *   salida más corto, la matriz de distancias se verá completada
- *
- *   start: punto de origen para resolver el mapa
- *
- *   resultado: lista de puntos con el camino a la salida
- */
-std::list<Point> Klondike::solve(Point start) {
+*  Función: solve
+* --------------------------------------------------------
+*   Resuelve el mapa, desde el punto dado, en la lista se guarda el camino a la
+*   salida más corto, la matriz de distancias se verá completada
+*
+*   start: punto de origen para resolver el mapa
+*
+*   resultado: lista de puntos con el camino a la salida
+*/
+std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_search) {
+  bool s = v_search != nullptr; // Si se proporciona una lista, dar pasos de resolución
+  std::list<Point> steps; // Auxiliar para s true
+  std::list<SearchResult> search;
+
   std::list<Point> path;
   std::list<Point> sol;  // Lista prinicipal del algoritmo
   sol.push_back(start);
   setDist(start, 0); // Coste 0, posición inicial
-  int minD = std::numeric_limits<int>::max(); // Distancia hasta la salida
 
   // Mientras haya algo en la lista....
   while(!sol.empty()) {
-    Point s = sol.front(); // Coger el primer elemento
+    Point now = sol.front(); // Coger el primer elemento
     sol.pop_front(); // Eliminar el primer elemento
 
+    if(s) steps.clear();
+
     // Obtener las posibles casillas a las que se puede ir
-    std::list<Point> ady = adyacent(s);
+    std::list<Point> ady = adyacent(now);
+
     // Recorrer todas las casillas adyacentes
     for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
+
       // Si no ha sido visitada (coste = maximo) y no esta fuera del mapa
-      if (getDist(*it) == std::numeric_limits<int>::max() && getMap(*it) != -1)  {
-        setDist(*it, getDist(s) + 1); // Actualizar coste (distancia)
+      if (getDist(*it) == std::numeric_limits<int>::max())  {
+
+        setDist(*it, getDist(now) + 1); // Actualizar coste (distancia)
         sol.push_back(*it); // Añadir a la lista principal
+
+        if(s) steps.push_back(*it); // Añadir casilla en modo pasos
+
         // Si la casilla es una del final y esta más cerca que ninguna otra
         // hasta el momento
-        if( getMap(*it) == 0 && getDist(*it) < minD) {
-          minD = getDist(*it); // Actualizar coste
-          path.clear(); // Borrar solucion anterior
+        if( getMap(*it) == 0) {
           path.push_front(*it); // Poner la casilla en la lista de la solución
+          sol.clear(); // Se acabó la búsqueda
+          break;
         }
+
+      }
+    }
+
+    // Añadir si se esta en modo pasos esta iteración
+    if(s) search.push_back(SearchResult(now, steps, getDist(now) + 1, false));
+
+  }
+
+  if (path.empty()) // Si no hay solución, terminar
+  return path;
+
+  // Recorrer el camino hacia atrás desde la meta
+  for(int c = getDist(path.front()); c > 0; c--) {
+
+    // Buscar por el mapa
+    for (int i = 0; i < SIZE; i++) {
+      for (int j = 0; j < SIZE; j++) {
+        if(s) steps.clear();
+
+        /* Mirar si estamos en una casilla que pueda ser adyacente de path.front(),
+           En dirección horizontal, vertical o las diagonales        */
+        if (i == path.front().x || j == path.front().y || abs(path.front().x-i) == abs(path.front().y-j)) {
+
+          // Si el coste es justo uno menor que el anterior
+          if (dist[i][j] == c-1) {
+
+            // Obtener casillas adyacentes
+            std::list<Point> ady = adyacent(Point(i,j));
+
+            // Buscar si coincide esta casilla con path.front()
+            for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
+
+              if(s) steps.push_back(*it); // Añadir casilla en modo pasos
+
+              if(path.front() == *it) { // Casilla encontrada
+                path.push_front(Point(i,j)); //Añadir a la solución
+                i = j = SIZE; //Pasar a la siguiente valor
+                break;
+              }
+            }
+          }
+        }
+
+        // Añadir si se esta en modo pasos esta iteración
+        if(s) search.push_back(SearchResult(path.front(), steps, c, true));
       }
     }
   }
 
-  if (path.empty())
-    return path;
-
-  // Recorrer el camino hacia atrás desde la meta
-  for(int c = minD, d = minD; c > 0; c--) {
-    // Buscar por el mapa
-    for (unsigned int i = 0; i < SIZE && c == d; i++) {
-      for (unsigned int j = 0; j < SIZE && c == d; j++) {
-        // Si el coste es justo uno menor que el anterior
-        if (dist[i][j] == d-1) {
-          // Obtener casillas adyacentes
-          std::list<Point> ady = adyacent(Point(i,j));
-          // Buscar si alguna de las casillas adyacentes lleva a esta
-          std::list<Point>::iterator it = std::find(ady.begin(), ady.end(), path.front());
-          if (it != ady.end()) { // Si hemos encontrado algo
-            path.push_front(Point(i,j)); //Añadir a la solución
-            d--;
-          }
-        }
-      }
-    }
+  // Modo pasos, Convertir la lista en un vector para su manejo más simple
+  if(s) {
+    v_search->reserve(search.size());
+    v_search->assign(search.begin(), search.end());
   }
 
   return path;
 }
 
 /*
- *  Función: setDist
- * --------------------------------------------------------
- *   Actualiza la distancia de una casilla
- *
- *   p: punto que corresponde a la casilla en cuestión
- *   newDist: nueva distancia
- */
- void Klondike::setDist(Point p, int newDist) {
+*  Función: setDist
+* --------------------------------------------------------
+*   Actualiza la distancia de una casilla
+*
+*   p: punto que corresponde a la casilla en cuestión
+*   newDist: nueva distancia
+*/
+void Klondike::setDist(Point p, int newDist) {
   dist[p.x][p.y] = newDist;
 }
 
 /*
- *  Función: getDist
- * --------------------------------------------------------
- *   Obtiene la distancia de una casilla
- *
- *   p: punto que corresponde a la casilla en cuestión
- *
- *  resultado: distancia de la casilla en cuestión
- */
- int Klondike::getDist(Point p) {
+*  Función: getDist
+* --------------------------------------------------------
+*   Obtiene la distancia de una casilla
+*
+*   p: punto que corresponde a la casilla en cuestión
+*
+*  resultado: distancia de la casilla en cuestión
+*/
+int Klondike::getDist(Point p) {
   return dist[p.x][p.y];
 }
 
 /*
- *  Función: getMap
- * --------------------------------------------------------
- *   Obtiene el valor de una casilla
- *
- *   p: punto que corresponde a la casilla en cuestión
- *
- *  resultado: valor de la casilla en cuestión
- */
- short Klondike::getMap(Point p) {
+*  Función: getMap
+* --------------------------------------------------------
+*   Obtiene el valor de una casilla
+*
+*   p: punto que corresponde a la casilla en cuestión
+*
+*  resultado: valor de la casilla en cuestión
+*/
+short Klondike::getMap(Point p) {
   return map[p.x][p.y];
 }
 
 /*
- *  Función: adyacent
- * --------------------------------------------------------
- *   Calcula las casillas accesibles desde una dada
- *
- *   now: casilla desde la cual se desea calcular a cuales otras se puede ir
- *
- *   resultado: lista de puntos con las casillas posibles desde la dada
- */
- std::list<Point> Klondike::adyacent(Point now) {
+*  Función: adyacent
+* --------------------------------------------------------
+*   Calcula las casillas accesibles desde una dada
+*
+*   now: casilla desde la cual se desea calcular a cuales otras se puede ir
+*
+*   resultado: lista de puntos con las casillas posibles desde la dada
+*/
+std::list<Point> Klondike::adyacent(Point now) {
   std::list<Point> ady; // Lista de casillas adyacentes
   short i = now.x;
   short j = now.y;
@@ -250,3 +290,6 @@ std::list<Point> Klondike::solve(Point start) {
 
   return ady;
 }
+
+SearchResult::SearchResult(Point p, std::list<Point> l, int d, bool ph) :
+from(p), adyacent(l), distance(d), phase(ph){}

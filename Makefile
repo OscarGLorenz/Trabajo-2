@@ -5,7 +5,7 @@ CC=g++
 CPPFLAGS= -lm -std=c++11 -Wall -Isrc -lm -lGL -lGLU -lglut
 
 #Objetivo
-TARGET=Explorador
+TARGET=Solver
 
 all:
 	$(CC) $(TARGET).cpp src/Klondike.cpp $(CPPFLAGS) -o $(TARGET)
