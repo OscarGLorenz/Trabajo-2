@@ -1,15 +1,27 @@
-#Compilador a usar
-CC=g++
+CC := g++
+SRCDIR := src
+BUILDDIR := build
+TARGET := bin/Game
 
-#Flags
-CPPFLAGS= -lm -std=c++11 -Wall -Isrc -lm -lGL -lGLU -lglut
+SRCEXT := cpp
+SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+CFLAGS := -Wall -std=c++11
+LIB := -lGL -lGLU -lglut -lm
+INC := -I include
 
-#Objetivo
-TARGET=Explorador
+$(TARGET): $(OBJECTS)
+	$(CC) $^ -o $(TARGET) $(LIB)
 
-all:
-	$(CC) $(TARGET).cpp src/Klondike.cpp $(CPPFLAGS) -o $(TARGET)
+$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
-#Borra los archivos objeto
 clean:
-	rm -f *.o $(TARGET) src/*.o
+	$(RM) -r $(BUILDDIR) $(TARGET)
+
+test: $(OBJECTS)
+	 $(CC) $(CFLAGS) $(OBJECTS) -o bin/$(TEST) $(LIB) $(INC)
+ 
+.PHONY: clean
+

@@ -11,6 +11,7 @@
 #ifndef KLONDIKE_HPP
 #define KLONDIKE_HPP
 
+#include <vector>
 #include <list>
 #include <limits>
 
@@ -50,6 +51,21 @@ public:
 };
 
 /*
+ *  Clase: SearchResult
+ * --------------------------------------------------------
+ *   Representa un paso del resolvedor del mapa
+ *
+ */
+class SearchResult {
+public:
+  SearchResult(Point p, std::list<Point> l, int d, bool ph);
+  Point from; // Posición actual
+  std::list<Point> adyacent; // Opciones
+  int distance; // Distancia a esas nuevas opciones
+  bool phase; // Fase, Distancias = false, Camino = true
+};
+
+/*
  *  Clase: Klondike
  * --------------------------------------------------------
  *   Clase principal, contiene al mapa y tiene funciones para
@@ -73,10 +89,11 @@ public:
    *   salida más corto, la matriz de distancias se verá completada
    *
    *   start: punto de origen para resolver el mapa
+   *   (Opcional) search: da una lista de los pasos necesarios para resolver
    *
    *   resultado: lista de puntos con el camino a la salida
    */
-  std::list<Point> solve(Point start);
+  std::list<Point> solve(Point start, std::vector<SearchResult> * search = nullptr);
 
   /*
    *  Función: adyacent

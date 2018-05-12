@@ -162,16 +162,21 @@ int main(int argc,char* argv[]) {
   glutInitWindowSize(ANCHO,ALTO);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutCreateWindow("Ejemplo GLUT");
-
+  
+  glutGameModeString("1024x768:32@75"); //the settings 
+  glutEnterGameMode(); //set glut to fullscreen using the 
+ //glutLeaveGameMode();
+ 
   //Habilitar las luces, la renderizacion y el color de los materiales
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHTING);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_COLOR_MATERIAL);
+	//glutFullScreen();
 
   //definir la proyeccion
   glMatrixMode(GL_PROJECTION);
-  gluPerspective( 40.0, ANCHO/ALTO, 0.1, 50);
+  gluPerspective( 40.0, 1027.0/768.0, 0.1, 50);
 
   // color del fondo
   glClearColor(0.5f, 0.91f, 0.9f, 0.5f);
