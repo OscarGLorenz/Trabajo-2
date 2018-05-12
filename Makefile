@@ -21,7 +21,7 @@ clean:
 	$(RM) -r $(BUILDDIR) $(TARGET)
 
 test: $(OBJECTS)
-	 $(CC) $(CFLAGS) $(OBJECTS) -o bin/$(TEST) $(LIB) $(INC)
+	 $(CC) $(CFLAGS) $(OBJECTS) test/$(TEST).cpp -o bin/$(TEST) $(LIB) $(INC)
  
 .PHONY: clean
 
