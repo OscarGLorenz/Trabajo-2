@@ -2,7 +2,7 @@
 #include <list>
 
 #include "Klondike.hpp"
-#include "Mapa.h"
+#include "GL/glut.h"
 
 #define WIDTH 900
 #define HEIGHT 1074
@@ -15,17 +15,18 @@
 #define ORIGINAL_MAP "klondike.bmp"
 
 class MapGenerator {
-  MapGenerator();
-  short map(Point p);
+public:
+  MapGenerator(Klondike * klondike);
+  void random(unsigned int minMoves);
   void createMap();
-  void random();
 
+  GLuint loadMap();
+  void displayMap(GLuint texture);
 private:
-  Klondike lab = Klondike(MAPA);
+  Klondike * lab;
   std::list<Point> path;
   std::list<Point> ady;
   std::default_random_engine generator;
   bool original;
-  int checkPath(Point point, bool write);
-
+  int checkPath(Point point, bool write, unsigned int minMoves);
 };

@@ -1,20 +1,112 @@
-#include <chrono>
-#include <random>
-#include <list>
+#include<iostream>
+#include<iomanip>
+
+
 #include <algorithm>
+#include <chrono>
 #include <fstream>
+#include <list>
+#include <random>
 #include <string>
 
-#include "MapGenerator.hpp"
 #include "Klondike.hpp"
+#include "MapGenerator.hpp"
 
-MapGenerator::MapGenerator() {
+MapGenerator::MapGenerator(Klondike * klondike) {
+  lab = klondike;
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   generator = std::default_random_engine(seed);
   original = true;
 }
-short MapGenerator::map(Point p) {
-  return lab.getMap(p);
+
+int MapGenerator::checkPath(Point point, bool write, unsigned int minMoves) {
+  // Distribución aleatoria
+  static std::uniform_int_distribution<int> distr(1,9);
+
+  // Escoger valor del mapa de forma aleatoria
+  lab->setMap(point, distr(generator));
+  // Obtener adyacentes
+  ady = lab->adyacent(point);
+
+  // Comprobar que los adyacentes cumples las siguientes normas
+  for (std::list<Point>::iterator it = ady.begin(); it != ady.end();++it){
+    // - El camino no debe cruzarse consigo mismo
+    bool isPath = std::find(path.begin(), path.end(), *it) != path.end();
+    if (isPath) return -1;
+    // - En el caso de encontrar la salida
+    else if(lab->getMap(*it) == 0) {
+      //-  Si no tenemos el número de movimientos exigido desechar
+      if (path.size() < minMoves) return -1;
+      // - Si estamos haciendo el camino, añadir a la lista la salida
+      if(write) path.push_back(*it);
+      // Cortar el bucle si ya tenemos los movimientos exigidos
+      return 0;
+    }
+  }
+  // Salida de la función sin errores
+  return 1;
+}
+
+void MapGenerator::random(unsigned int minMoves) {
+  // Purgar mapa antiguo
+  for (unsigned int i = 0; i < SIZE; i++) {
+    for (unsigned int j = 0; j < SIZE; j++) {
+      if (lab->getMap(Point(i,j)) > 0)
+      lab->setMap(Point(i,j), -2);
+    }
+  }
+
+  // Inicio
+  Point point(11,11);
+  path.push_back(point);
+
+  // Bandera de control del bucle
+  int flag;
+  // Salir si hemos llegado a la salida
+  while ((flag = checkPath(point, true, minMoves))) {
+    // Si el camino se cruza volver a intentarlo
+    if (flag == -1) continue;
+
+    // Elegir una dirección aletoria de las válidas
+    std::uniform_int_distribution<int> value(0, ady.size()-1);
+    auto it = ady.begin();
+    std::advance(it, value(generator));
+
+    // Ahora comprobaremos si es posible llegar a la casilla elegida desde
+    // otra anterior del camino, exceptuando la última.
+    bool isPath = false; // Variable de control
+    if (path.size() > 1) { // Solo si el camino tiene 2 o más casillas por ahora
+      // Mirar el camino desde el primero al penúltimo
+      for (auto p = path.begin(); p != --path.end(); ++p) {
+        //Obtener adyacentes
+        auto a = lab->adyacent(*p);
+        // Marcar la bandera si el camino se cruza
+        isPath |= (std::find(a.begin(),a.end(),*it) != a.end());
+      }
+    }
+    if(isPath) continue; // Se ha cruzado el camino, desechar
+
+    // Añadir al camino esta casilla
+    path.push_back(*it);
+    point = *it;
+  }
+
+  // Recorrer el mapa entero buscando casillas sin rellenar (-2)
+  for (unsigned int i = 0; i < SIZE; i++) {
+    for (unsigned int j = 0; j < SIZE; j++) {
+      Point p(i,j);
+      if (lab->getMap(p) == -2) {
+        // Intentar rellenar una casilla
+        for (int t = 0;(flag = checkPath(p,false,minMoves)) != 1;t++) {
+          // Si no se ha encontrado uno en 30 iteraciones, poner un -1
+          if (t == 30) {
+            lab->setMap(p,-1);
+            break;
+          }
+        }
+      }
+    }
+  }
 }
 
 void MapGenerator::createMap() {
@@ -46,13 +138,13 @@ void MapGenerator::createMap() {
   // Iterar por el mapa
   for (int a=0; a < 23; a++) {
     for (int b=0; b < 23; b++) {
-      if (MAPA[a][b] > 0) {
+      if (lab->getMap(Point(a,b)) > 0) {
         std::fstream number;
 
         // Generar nombre del archivo
         std::string str;
         str += RELATIVE_PATH;
-        str.push_back( (char) MAPA[a][b] + '0');
+        str.push_back( (char) lab->getMap(Point(a,b)) + '0');
         if (a == 11 && b == 11) // El del centro va al revés
         str.push_back('N');
         else
@@ -132,67 +224,68 @@ void MapGenerator::createMap() {
   }
 
   // Cerrar archivo destino
-output.close();
+  output.close();
 }
 
-void MapGenerator::random() {
-  // Purgar mapa antiguo
-  for (unsigned int i = 0; i < SIZE; i++) {
-    for (unsigned int j = 0; j < SIZE; j++) {
-      if (lab.getMap(Point(i,j)) > 0)
-      lab.setMap(Point(i,j), -2);
+GLuint MapGenerator::loadMap() {
+  GLuint texture;
+
+  std::vector<char> data(3*HEIGHT*WIDTH); // Mapa de bits
+  std::fstream file; // Archivo
+  std::string file_str;
+  if (original){
+    file_str = std::string(RELATIVE_PATH) + std::string(ORIGINAL_MAP);
+  } else {
+    file_str = std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
+  }
+
+  file.open (file_str, std::fstream::in | std::fstream::binary);
+
+  file.seekg(139); // Saltar cabecera
+  for(int j=0; j<HEIGHT; j++) {
+    for(int i=0; i<WIDTH; i++) {
+      // Copiar colores BGR
+      data[(i+j*WIDTH)*3+2] = file.get();
+      data[(i+j*WIDTH)*3+1] = file.get();
+      data[(i+j*WIDTH)*3+0] = file.get();
+      file.seekg((4-(WIDTH*3)%4)%4+1, file.cur);
     }
   }
 
-  // Inicio
-  Point point(11,11);
+  file.close(); // Cerrar
 
-  // Bandera de control del bucle
-  int flag;
-  // Salir si hemos llegado a la salida
-  while ((flag = checkPath(point, true))) {
-    // Si el camino se cruza volver a intentarlo
-    if (flag == -1) continue;
+  // **************Magia*****************
+  glGenTextures( 1, &texture );
+  glBindTexture( GL_TEXTURE_2D, texture );
+  glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST );
 
-    // Elegir una dirección aletoria de las válidas
-    std::uniform_int_distribution<int> value(0, ady.size()-1);
-    auto it = ady.begin();
-    std::advance(it, value(generator));
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
+  gluBuild2DMipmaps( GL_TEXTURE_2D, 3, WIDTH, HEIGHT,GL_RGB, GL_UNSIGNED_BYTE, data.data());
+  // **************Magia*****************
 
-    // Añadir al camino esta casilla
-    path.push_back(*it);
-    point = *it;
-  }
-
-  for (unsigned int i = 0; i < SIZE; i++) {
-    for (unsigned int j = 0; j < SIZE; j++) {
-      Point p(i,j);
-      if (lab.getMap(p) == -2) {
-        for (int t = 0;(flag = checkPath(p,false)) != 1;t++) {
-          if (t == 30) {
-            lab.setMap(p,-1);
-            break;
-          }
-        }
-      }
-    }
-  }
-
+  return texture;
 }
 
-int MapGenerator::checkPath(Point point, bool write) {
-  static std::uniform_int_distribution<int> distr(1,9);
+void MapGenerator::displayMap(GLuint texture) {
+  // **************Magia*****************
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glBegin(GL_QUADS);
+  // **************Magia*****************
 
-  lab.setMap(point, distr(generator));
-  ady = lab.adyacent(point);
+  // Esquinas del mapaç
+  const float ratio = ((float) HEIGHT)/ ((float) WIDTH);
+  glTexCoord2f(0.0, 0.0); glVertex3f(-5.0, -5.0*ratio, 0.0);
+  glTexCoord2f(0.0, 1.0); glVertex3f(-5.0, 5.0*ratio, 0.0);
+  glTexCoord2f(1.0, 1.0); glVertex3f(5.0, 5.0*ratio, 0.0);
+  glTexCoord2f(1.0, 0.0); glVertex3f(5.0, -5.0*ratio, 0.0);
 
-  for (std::list<Point>::iterator it = ady.begin(); it != ady.end();++it){
-    bool isPath = std::find(path.begin(), path.end(), *it) != path.end();
-    if (isPath) return -1;
-    else if(lab.getMap(*it) == 0) {
-      if(write) path.push_back(point);
-      return 0;
-    }
-  }
-  return 1;
+  glEnd();
+  glFlush();
+  glDisable(GL_TEXTURE_2D);
 }
