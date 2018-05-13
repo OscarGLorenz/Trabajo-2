@@ -48,6 +48,7 @@ int MapGenerator::checkPath(Point point, bool write, unsigned int minMoves) {
 }
 
 void MapGenerator::random(unsigned int minMoves) {
+  original = false;
   // Purgar mapa antiguo
   for (unsigned int i = 0; i < SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
@@ -241,14 +242,14 @@ GLuint MapGenerator::loadMap() {
 
   file.open (file_str, std::fstream::in | std::fstream::binary);
 
-  file.seekg(139); // Saltar cabecera
+  file.seekg(original ? 139 : 54); // Saltar cabecera
   for(int j=0; j<HEIGHT; j++) {
     for(int i=0; i<WIDTH; i++) {
       // Copiar colores BGR
       data[(i+j*WIDTH)*3+2] = file.get();
       data[(i+j*WIDTH)*3+1] = file.get();
       data[(i+j*WIDTH)*3+0] = file.get();
-      file.seekg((4-(WIDTH*3)%4)%4+1, file.cur);
+      if (original) file.seekg((4-(WIDTH*3)%4)%4+1, file.cur);
     }
   }
 
