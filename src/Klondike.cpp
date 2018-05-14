@@ -18,9 +18,19 @@ Point::Point(short X, short Y, Direction d) : x(X), y(Y), dir(d) {}
 * --------------------------------------------------------
 *   Comprueba si dos puntos son iguales
 */
-bool Point::operator==(Point other) {
+bool Point::operator==(const Point other) const{
   return (this->x == other.x) && (this->y == other.y);
 }
+
+/*
+*  Operador !=
+* --------------------------------------------------------
+*   Comprueba si dos puntos son iguales
+*/
+bool Point::operator!=(const Point other) const{
+  return (this->x != other.x) || (this->y != other.y);
+}
+
 
 /*
 *  Constructor
@@ -181,6 +191,20 @@ int Klondike::getDist(Point p) {
 short Klondike::getMap(Point p) {
   return map[p.x][p.y];
 }
+
+
+/*
+ *  Función: setMap
+ * --------------------------------------------------------
+ *   Actualiza los movimientos de una casilla
+ *
+ *   p: punto que corresponde a la casilla en cuestión
+ *   newMap: nuevos movimientos
+ */
+void Klondike::setMap(Point p, short newMap) {
+  map[p.x][p.y] = newMap;
+}
+
 
 /*
 *  Función: adyacent

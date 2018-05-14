@@ -43,7 +43,8 @@ public:
    * --------------------------------------------------------
    *   Comprueba si dos puntos son iguales
    */
-  bool operator==(Point other);
+  bool operator==(const Point other) const;
+  bool operator!=(const Point other) const;
 
   short x; // Primer índice
   short y; // Segundo índice
@@ -137,6 +138,16 @@ public:
    *  resultado: valor de la casilla en cuestión
    */
   short getMap(Point p);
+
+  /*
+   *  Función: setMap
+   * --------------------------------------------------------
+   *   Actualiza los movimientos de una casilla
+   *
+   *   p: punto que corresponde a la casilla en cuestión
+   *   newMap: nuevos movimientos
+   */
+  void setMap(Point p, short newMap);
 
 private:
 
