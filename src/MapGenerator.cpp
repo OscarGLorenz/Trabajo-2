@@ -1,7 +1,3 @@
-#include<iostream>
-#include<iomanip>
-
-
 #include <algorithm>
 #include <chrono>
 #include <fstream>
@@ -49,6 +45,8 @@ int MapGenerator::checkPath(Point point, bool write, unsigned int minMoves) {
 
 void MapGenerator::random(unsigned int minMoves) {
   original = false;
+  path.clear();
+
   // Purgar mapa antiguo
   for (unsigned int i = 0; i < SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
@@ -145,7 +143,7 @@ void MapGenerator::createMap() {
         // Generar nombre del archivo
         std::string str;
         str += RELATIVE_PATH;
-        str.push_back( (char) lab->getMap(Point(a,b)) + '0');
+        str.push_back( (char) lab->getMap(Point(b,a)) + '0');
         if (a == 11 && b == 11) // El del centro va al revés
         str.push_back('N');
         else

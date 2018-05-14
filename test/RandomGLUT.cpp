@@ -15,29 +15,39 @@
 Klondike lab(MAPA);
 MapGenerator map(&lab);
 
-class GL {
-public:
-  static void OnDibuja(void) {
-    //Borrado de la pantalla
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+int ox = 11, oy = 11;
+GLuint KLtexture;
 
-    // proyeccion de las figuras
-    map.displayMap(KLtexture);
-    drawSnowMan(-0.144f+(oy-11.0)*0.422,-0.190f+(11.0-ox)*0.422,0);
+void drawSnowMan(float x, float y, float z) {
+  glColor3f(1.0f, 0 , 1.0f); // Color RGB
+  glPushMatrix(); // Crear matriz
+  glTranslatef(x,y,z); // Mover muñeco
+  glutSolidSphere(0.15f,20,20); // Dibujar esfera
+  glPopMatrix(); // Eliminar matriz
+}
 
-    glLoadIdentity();
+void OnDibuja(void) {
+  //Borrado de la pantalla
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // posicciona el punto de vista
-    gluLookAt(0,-10,10,  // posicion del  ojo
-  	    0.0, 0, 0.0,		        // hacia que punto mira
-  	    0.0, 1.0, 0.0);         // vector "UP"  (vertical positivo)
+
+  // proyeccion de las figuras
+  map.displayMap(KLtexture);
+  drawSnowMan(-0.144f+(oy-11.0)*0.422,-0.190f+(11.0-ox)*0.422,0);
+
+  glLoadIdentity();
+
+  // posicciona el punto de vista
+  gluLookAt(0,-10,10,  // posicion del  ojo
+    0.0, 0, 0.0,		        // hacia que punto mira
+    0.0, 1.0, 0.0);         // vector "UP"  (vertical positivo)
 
     //Al final, cambiar el buffer
     glutSwapBuffers();
     glutPostRedisplay();//se le indica que redibuje la pantalla
   }
 
-  static void OnKeyboardDown(unsigned char key, int x, int y) {
+  void OnKeyboardDown(unsigned char key, int x, int y) {
     Direction c = Direction::NONE;
     // Casillas posibles
     std::list<Point> ady = lab.adyacent(Point(ox,oy));
@@ -62,52 +72,40 @@ public:
       case 'c': c = Direction::SOUTHEAST; break;
       case 'S':
       case 's':
+
       map.random(10);
       map.createMap();
-        ox = oy = 11;
-        KLtexture = map.loadMap();
-        glBindTexture (GL_TEXTURE_2D, KLtexture);
+      ox = oy = 11;
+      KLtexture = map.loadMap();
 
-     }
+    }
 
     // Buscar si es un movimiento posible
     for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
-  	   if (it->dir == c) {
+      if (it->dir == c) {
         // Mover muñeco
-  		  ox = it->x;
-  		  oy = it->y;
-  	 }
+        ox = it->x;
+        oy = it->y;
+      }
     }
   }
 
-  static void drawSnowMan(float x, float y, float z) {
-    glColor3f(1.0f, 0 , 1.0f); // Color RGB
-    glPushMatrix(); // Crear matriz
-    glTranslatef(x,y,z); // Mover muñeco
-    glutSolidSphere(0.15f,20,20); // Dibujar esfera
-    glPopMatrix(); // Eliminar matriz
-  }
-
-  static void init(int * argc,char* argv[]) {
-
-
-    GL::ox = 11;
-    GL::oy = 11;
-    glutInit(argc, argv);
+  int main(int argc, char *argv[]) {
+    glutInit(&argc, argv);
     glutInitWindowSize(ANCHO,ALTO);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutCreateWindow("Ejemplo GLUT");
 
     glutGameModeString("1024x768:32@75"); //the settings
-    glutEnterGameMode(); //set glut to fullscreen using the
-   //glutLeaveGameMode();
+    //glutEnterGameMode(); //set glut to fullscreen using the
+    //glutLeaveGameMode();
 
     //Habilitar las luces, la renderizacion y el color de los materiales
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_COLOR_MATERIAL);
-  	//glutFullScreen();
+    //glutFullScreen();
 
     //definir la proyeccion
     glMatrixMode(GL_PROJECTION);
@@ -125,23 +123,11 @@ public:
 
     // Carga la textura
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
     KLtexture = map.loadMap();
-    glBindTexture (GL_TEXTURE_2D, KLtexture);
 
     // bucle del programa
     glutMainLoop();
+
+    return 0;
   }
-
-private:
-  static int ox, oy;
-  static GLuint KLtexture;
-};
-
-int GL::ox, GL::oy;
-GLuint GL::KLtexture;
-
-int main(int argc, char *argv[]) {
-  GL::init(&argc,argv);
-
-  return 0;
-}
