@@ -1,27 +1,27 @@
-#Compilador a usar
-CC=g++
+CC := g++
+SRCDIR := src
+BUILDDIR := build
+TARGET := bin/Game
 
-#Flags
-CFLAGS=-lm -std=c++11 -Wall
+SRCEXT := cpp
+SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+CFLAGS := -Wall -std=c++11
+LIB := -lGL -lGLU -lglut -lm
+INC := -I include
 
-#Objetivo
-TARGET=main
+$(TARGET): $(OBJECTS)
+	$(CC) $^ -o $(TARGET) $(LIB)
 
-#Dependencias (archivo.h)
-DEPS = Klondike.hpp
+$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
-#Objetos (archivo.o)
-OBJ = $(TARGET).o Klondike.o
-
-
-#Compila todos los archivos objeto
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-#Linkea todos los archivos objeto
-$(TARGET): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
-#Borra los archivos objeto
 clean:
-	rm -f *.o
+	$(RM) -r $(BUILDDIR) $(TARGET)
+
+test: $(OBJECTS)
+	 $(CC) $(CFLAGS) $(OBJECTS) test/$(TEST).cpp -o bin/$(TEST) $(LIB) $(INC)
+ 
+.PHONY: clean
+

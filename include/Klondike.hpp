@@ -11,12 +11,16 @@
 #ifndef KLONDIKE_HPP
 #define KLONDIKE_HPP
 
+#include <vector>
 #include <list>
 #include <limits>
 
 // Tamaño del Laberinto
 #define SIZE 23
 
+enum class Direction {
+  NORTH, EAST, SOUTH, WEST, NORTHEAST, NORTHWEST, SOUTHWEST, SOUTHEAST, NONE
+};
 /*
  *  Clase: Point
  * --------------------------------------------------------
@@ -28,19 +32,38 @@ public:
   /*
    *  Constructor
    * --------------------------------------------------------
-   *   Genera un punto con las coordenadas x e y dados
+   *   Genera un punto con las coordenadas x e y dados.
+   *   Es opcional una dirección
    */
   Point(short X, short Y);
+  Point(short X, short Y, Direction dir);
 
   /*
    *  Operador ==
    * --------------------------------------------------------
    *   Comprueba si dos puntos son iguales
    */
-  bool operator==(Point other);
+  bool operator==(const Point other) const;
+  bool operator!=(const Point other) const;
 
   short x; // Primer índice
   short y; // Segundo índice
+  Direction dir; //Variable auxiliar
+};
+
+/*
+ *  Clase: SearchResult
+ * --------------------------------------------------------
+ *   Representa un paso del resolvedor del mapa
+ *
+ */
+class SearchResult {
+public:
+  SearchResult(Point p, std::list<Point> l, int d, bool ph);
+  Point from; // Posición actual
+  std::list<Point> adyacent; // Opciones
+  int distance; // Distancia a esas nuevas opciones
+  bool phase; // Fase, Distancias = false, Camino = true
 };
 
 /*
@@ -67,10 +90,11 @@ public:
    *   salida más corto, la matriz de distancias se verá completada
    *
    *   start: punto de origen para resolver el mapa
+   *   (Opcional) search: da una lista de los pasos necesarios para resolver
    *
    *   resultado: lista de puntos con el camino a la salida
    */
-  std::list<Point> solve(Point start);
+  std::list<Point> solve(Point start, std::vector<SearchResult> * search = nullptr);
 
   /*
    *  Función: adyacent
@@ -114,6 +138,16 @@ public:
    *  resultado: valor de la casilla en cuestión
    */
   short getMap(Point p);
+
+  /*
+   *  Función: setMap
+   * --------------------------------------------------------
+   *   Actualiza los movimientos de una casilla
+   *
+   *   p: punto que corresponde a la casilla en cuestión
+   *   newMap: nuevos movimientos
+   */
+  void setMap(Point p, short newMap);
 
 private:
 
