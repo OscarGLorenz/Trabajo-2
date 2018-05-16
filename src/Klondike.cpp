@@ -92,7 +92,8 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
         // hasta el momento
         if( getMap(*it) == 0) {
           path.push_front(*it); // Poner la casilla en la lista de la solución
-          sol.clear(); // Se acabó la búsqueda
+          // Buscar solo una solución
+          //sol.clear(); // Se acabó la búsqueda
           break;
         }
 
@@ -113,7 +114,7 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
     // Buscar por el mapa
     for (int i = 0; i < SIZE; i++) {
       for (int j = 0; j < SIZE; j++) {
-        if(s) steps.clear();
+        //if(s) steps.clear();
 
         /* Mirar si estamos en una casilla que pueda ser adyacente de path.front(),
            En dirección horizontal, vertical o las diagonales        */
@@ -128,7 +129,7 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
             // Buscar si coincide esta casilla con path.front()
             for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
 
-              if(s) steps.push_back(*it); // Añadir casilla en modo pasos
+              //if(s) steps.push_back(*it); // Añadir casilla en modo pasos
 
               if(path.front() == *it) { // Casilla encontrada
                 path.push_front(Point(i,j)); //Añadir a la solución
@@ -140,7 +141,7 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
         }
 
         // Añadir si se esta en modo pasos esta iteración
-        if(s) search.push_back(SearchResult(path.front(), steps, c, true));
+        //if(s) search.push_back(SearchResult(path.front(), steps, c, true));
       }
     }
   }
