@@ -1,3 +1,14 @@
+/******************************************************************************
+* ARCHIVO :        MapGenerator.cpp
+*
+* DESCRIPCIÓN :
+*       Contiene una clase para generar mapas aleatorios y cargar el mapa en openGL
+* NOTA:
+*       Documentación de uso de las funciones en la cabecera (include/)
+*
+* AUTOR :    Óscar García Lorenz
+******************************************************************************/
+
 #include <algorithm>
 #include <chrono>
 #include <fstream>
@@ -9,33 +20,34 @@
 #include "MapGenerator.hpp"
 
 MapGenerator::MapGenerator(Klondike * klondike) {
-  lab = klondike;
+  lab = klondike; // Guarda la referencia
+  // Crea una semilla para el generador de número aleatorios usando el tiempo
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  generator = std::default_random_engine(seed);
-  original = true;
+  generator = std::default_random_engine(seed); // Guarda el generador
+  original = true; // Empezamos usando el mapa original
 }
 
 int MapGenerator::checkPath(Point point, bool write, unsigned int minMoves) {
-  // Distribución aleatoria
+  // Distribución aleatoria de 1 a 9
   static std::uniform_int_distribution<int> distr(1,9);
 
-  // Escoger valor del mapa de forma aleatoria
+  // Escoger número de movimiento de forma aleatoria
   lab->setMap(point, distr(generator));
   // Obtener adyacentes
   ady = lab->adyacent(point);
 
-  // Comprobar que los adyacentes cumples las siguientes normas
+  // Comprobar que los adyacentes cumplen las siguientes normas
   for (std::list<Point>::iterator it = ady.begin(); it != ady.end();++it){
     // - El camino no debe cruzarse consigo mismo
     bool isPath = std::find(path.begin(), path.end(), *it) != path.end();
     if (isPath) return -1;
-    // - En el caso de encontrar la salida
+    // - En el caso de encontrar la salida:
     else if(lab->getMap(*it) == 0) {
-      //-  Si no tenemos el número de movimientos exigido desechar
+      // - Si no tenemos el número de movimientos exigido, desechar
       if (path.size() < minMoves) return -1;
       // - Si estamos haciendo el camino, añadir a la lista la salida
       if(write) path.push_back(*it);
-      // Cortar el bucle si ya tenemos los movimientos exigidos
+      // - Cortar el bucle si ya tenemos los movimientos exigidos
       return 0;
     }
   }
@@ -44,10 +56,10 @@ int MapGenerator::checkPath(Point point, bool write, unsigned int minMoves) {
 }
 
 void MapGenerator::random(unsigned int minMoves) {
-  original = false;
-  path.clear();
+  original = false; // Ya no es el mapa original
+  path.clear(); // Borrar el camino anterior si lo llamamos de nuevo
 
-  // Purgar mapa antiguo
+  // Purgar mapa antiguo (-2 significa casilla a rellenar)
   for (unsigned int i = 0; i < SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
       if (lab->getMap(Point(i,j)) > 0)
@@ -79,7 +91,7 @@ void MapGenerator::random(unsigned int minMoves) {
       for (auto p = path.begin(); p != --path.end(); ++p) {
         //Obtener adyacentes
         auto a = lab->adyacent(*p);
-        // Marcar la bandera si el camino se cruza
+        // Subir la bandera si el camino se cruza
         isPath |= (std::find(a.begin(),a.end(),*it) != a.end());
       }
     }
@@ -94,15 +106,10 @@ void MapGenerator::random(unsigned int minMoves) {
   for (unsigned int i = 0; i < SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
       Point p(i,j);
+      // Si falta por rellenar (-2)
       if (lab->getMap(p) == -2) {
         // Intentar rellenar una casilla
-        for (int t = 0;(flag = checkPath(p,false,minMoves)) != 1;t++) {
-          // Si no se ha encontrado uno en 30 iteraciones, poner un -1
-          if (t == 30) {
-            lab->setMap(p,-1);
-            break;
-          }
-        }
+        while(checkPath(p,false,minMoves) != 1){}
       }
     }
   }
@@ -253,7 +260,7 @@ GLuint MapGenerator::loadMap() {
 
   file.close(); // Cerrar
 
-  // **************Magia*****************
+  /************openGL************/
   glGenTextures( 1, &texture );
   glBindTexture( GL_TEXTURE_2D, texture );
   glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
@@ -263,21 +270,21 @@ GLuint MapGenerator::loadMap() {
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
   gluBuild2DMipmaps( GL_TEXTURE_2D, 3, WIDTH, HEIGHT,GL_RGB, GL_UNSIGNED_BYTE, data.data());
-  // **************Magia*****************
+  /************openGL************/
 
   return texture;
 }
 
 void MapGenerator::displayMap(GLuint texture) {
-  // **************Magia*****************
+  /************openGL************/
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_TEXTURE_2D);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBindTexture(GL_TEXTURE_2D, texture);
   glBegin(GL_QUADS);
-  // **************Magia*****************
+  /************openGL************/
 
-  // Esquinas del mapaç
+  // Esquinas del mapa (Añadimos un ratio ya que la imagen NO es cuadrada)
   const float ratio = ((float) HEIGHT)/ ((float) WIDTH);
   glTexCoord2f(0.0, 0.0); glVertex3f(-5.0, -5.0*ratio, 0.0);
   glTexCoord2f(0.0, 1.0); glVertex3f(-5.0, 5.0*ratio, 0.0);

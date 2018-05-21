@@ -4,6 +4,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <limits>
 
 int main() {
   Klondike lab(MAPA);
