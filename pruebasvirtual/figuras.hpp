@@ -6,8 +6,8 @@
     
      public:
      
-        float Color[3];
-        virtual void setColor(Colors);  
+        float Color[4];
+        void setColor(Colors);  
         virtual void draw(int,int)=0;
              
 
@@ -19,11 +19,12 @@
    
  class Minero : public Figuras {
      public:
-     Minero();
-      virtual void setColor(Colors);  
-      virtual void draw(int,int)=0;
+        Minero();
+        //void setColor(Colors); 
+        void draw(int,int);
+        //float getRadio();
      private:
-        float radio;
+        double radio;
         float coneHeight;
         float position[6];
      
@@ -37,8 +38,8 @@
   class Cuadro : public Figuras{
      public:
      Cuadro();
-      virtual void setColor(Colors);  
-      virtual void draw(int,int)=0;
+     //void setColor(Colors);  
+     void draw(int,int);
         
          
   

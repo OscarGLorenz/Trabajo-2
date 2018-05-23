@@ -23,7 +23,7 @@
 //LIBRERIAS TIEMPO
  Minero Jack;
  //SE DEFINEN LOS CUADROS DE COLORES (OBJETOS)
-  Cuadro Rojo;
+  //Cuadro Rojo;
   Cuadro Azul;
  GLuint KLtexture;
 
@@ -72,7 +72,7 @@ int i,j;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
      
     //SE DIBUJA EL MAPA
-    displaytext(KLtexture);
+   
     
   /************************************************************************/
   //PRUEBAS DE CUADROS DE COLORES
@@ -141,9 +141,10 @@ int i,j;
   }*/
   
   /***********PRUEBA DIBUJO DE CASILLAS A PARTIR DE MATRIZ************/
-  
-  for(i=0;i<24;i++){
-     for(j=0;j<24;j++){
+   displaytext(KLtexture);
+ 
+  for(i=0;i<23;i++){
+     for(j=0;j<23;j++){
          Azul.setColor(Casillas[i][j]);
          Azul.draw(i,j);
      }
@@ -197,17 +198,17 @@ int i,j;
 int main(int argc,char* argv[]){
 
 
- 
-for(i=0;i<24;i++){
-     for(j=0;j<24;j++){
-        if(MAPA[i][j]==-1){
+  for(i=0;i<23;i++){
+     for(j=0;j<23;j++){
+        if(MAPA[i][j]<=0){
          Casillas[i][j]=Colors::VOID;
          }
         else{
         Casillas[i][j]=Colors::RED;
         }
      }
-  }
+  } 
+
 
 
   /***********************************************************************
