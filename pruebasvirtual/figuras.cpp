@@ -70,7 +70,7 @@
 
   
   void Minero:: draw(int x,int y){
-          
+     /******PRIMERAS PRUEBAS*******/
      //dibujo el cuerpo del minero
      
      glPushMatrix();
@@ -95,8 +95,237 @@
      glutSolidSphere(radio,20,20);
      
      glPopMatrix();
-      
+     
+     
+     /***** DIBUJO DE MARTILLO***/
+     
    
+}
+
+   void Minero::drawCube(float x, float y, float z, float R, float G, float B, float size,int xx,int yy) {
+     
+    
+     //float a=-0.180f+(yy-11.0)*0.422;
+     //float b=-0.205f+(11.0-xx)*0.422;
+     
+     x*=size;
+ 
+     y*=size;
+ 
+     z*=size;
+ 
+     //Multi-colored side - FRONT
+     
+      glPushMatrix();
+      //glDisable(GL_LIGHTING);
+     glTranslatef((-0.180f+(yy-11.0)*0.422),(-0.205f+(11.0-xx)*0.422),0.5);
+     glRotatef(0,1,0,0);
+     glRotatef(20,0,1,0);
+     glRotatef(0,0,0,1);
+     glBegin(GL_POLYGON);
+ 
+     glColor3f(R,G,B);
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z-size*0.5 );      // P1 is red
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z-size*0.5 );      // P2 is green
+ 
+     glVertex3f( /*a+*/x-size*0.5,  /*b+*/y+size*0.5, z-size*0.5 );      // P3 is blue
+ 
+     glVertex3f( /*a+*/x-size*0.5, /*b+*/y-size*0.5, z-size*0.5 );      // P4 is purple
+ 
+
+ 
+     glEnd();
+ 
+
+ 
+     glBegin(GL_POLYGON);
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5,  /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5,  /*b+*/y+size*0.5, z+size*0.5 ) ;
+ 
+     glVertex3f( /*a+*/x-size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glEnd();
+ 
+
+ 
+     // Purple side - RIGHT
+ 
+     glBegin(GL_POLYGON);
+ 
+     glVertex3f( /*a+*/x+size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glVertex3f( /*a+*/x+size*0.5,  /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f( /*a+*/x+size*0.5,  /*b+*/y+size*0.5,  z+size*0.5 );
+ 
+     glVertex3f( /*a+*/x+size*0.5, /*b+*/y-size*0.5,  z+size*0.5 );
+ 
+     glEnd();
+ 
+
+ 
+     // Green side - LEFT
+ 
+     glBegin(GL_POLYGON);
+ 
+     glVertex3f( /*a+*/x-size*0.5, /*b+*/y-size*0.5,  z+size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5,  /*b+*/y+size*0.5,  z+size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5,  /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glEnd();
+ 
+
+ 
+     // Blue side - TOP
+ 
+     glBegin(GL_POLYGON);
+ 
+     glVertex3f(  /*a+*/x+size*0.5,  /*b+*/y+size*0.5,  z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5,  /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5,  /*b+*/y+size*0.5,z-size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5,  /*b+*/y+size*0.5,  z+size*0.5 );
+ 
+     glEnd();
+ 
+
+ 
+    // Red side - BOTTOM
+ 
+     glBegin(GL_POLYGON);
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z+ size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5,/*b+*/y-size*0.5,  z+size*0.5 );
+ 
+     glVertex3f( /*a+*/x-size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glEnd();
+     
+    // glEnable(GL_LIGHTING);
+ 
+     glFlush();
+
+    // glDisable(GL_LIGHTING);
+     glColor3f(0,0,0 );
+ 
+     glLineWidth(1.5);
+ 
+     glBegin(GL_LINES);
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z-size*0.5 );
+ 
+
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y+size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y+size*0.5, z-size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y+size*0.5, z-size*0.5 );
+ 
+
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x-size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z+size*0.5 );
+ 
+     glVertex3f(  /*a+*/x+size*0.5, /*b+*/y-size*0.5, z-size*0.5 );
+ 
+     glEnd();
+     //glEnable(GL_LIGHTING);
+     glFlush();
+
+
+
+     //glDisable(GL_LIGHTING);
+     glBegin(GL_LINE_STRIP);
+ 
+     glLineWidth(2);
+ 
+
+ 
+     glColor3f(1.0f,0.0f,0.0f);
+ 
+     glVertex3f(0.0f,0.0f,0.0f);
+ 
+     glVertex3f(10.0f,0.0f,0.0f);
+ 
+     glColor3f(0.0f,1.0f,0.0f);
+ 
+     glVertex3f(0.0f,0.0f,0.0f);
+ 
+     glVertex3f(0.0f,10.0f,0.0f);
+ 
+     glColor3f(0.0f,0.0f,1.0f);
+ 
+     glVertex3f(0.0f,0.0f,0.0f);
+ 
+     glVertex3f(0.0f,0.0f,10.0f);
+ 
+     glEnd();
+ 
+     //glEnable(GL_LIGHTING);
+ 
+
+ 
+     glPopMatrix();
+ 
+     glFlush();
+ 
+
+ 
 }
 
   Cuadro::Cuadro(){

@@ -59,7 +59,7 @@ int i,j;
  */
  
 
- float cam_pos[3]={-0, -10, 10};
+ float cam_pos[3]={-0, -2, 2};
 
  void Keyboard(int key, int x, int y);
  void Keys(unsigned char tecla,int x,int y);
@@ -150,7 +150,173 @@ int i,j;
      }
   }
   Jack.setColor(Colors::ORANGED);
-  Jack.draw(ox,oy);
+  //Jack.draw(ox,oy);
+  
+  /************PRUEBA DIBUJA MARTLLO**********/
+  Jack.drawCube(0,0,0, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(1,0,0, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(0,0,1, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(1,0,1, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(2,0,1, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(1,0,2, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(2,0,2, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(3,0,2, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(2,0,3, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(3,0,3, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(4,0,3, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,3,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+
+ 
+
+ 
+  Jack.drawCube(3,0,4, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(4,0,4, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(5,0,4, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,4,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,4,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(12,0,4,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(4,0,5, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(5,0,5, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(6,0,5, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,5,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,5,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(12,0,5,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(5,0,6, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(6,0,6, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(7,0,6, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,6,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,6,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(12,0,6,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(6,0,7, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(7,0,7, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(8,0,7, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,7,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,7,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(12,0,7,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(7,0,8, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(8,0,8, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(9,0,8, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,8,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,8,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(12,0,8,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(8,0,9, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(9,0,9,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,9,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,9,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(4,0,10,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(5,0,10,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(6,0,10,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(7,0,10,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(8,0,10,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(9,0,10,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,10, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,10, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(3,0,11,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(4,0,11,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(5,0,11,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(6,0,11,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(7,0,11,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(8,0,11,0.2f, 0.922f, 0.796f, 0.05,ox,oy);
+ 
+  Jack.drawCube(9,0,11,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(10,0,11, 0.3f, 0.15f, 0.05f, 0.05,ox,oy);
+ 
+  Jack.drawCube(11,0,11, 0.5f, 0.35f, 0.05f, 0.05,ox,oy);
+ 
+
+ 
+  Jack.drawCube(4,0,12,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(5,0,12,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(6,0,12,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(7,0,12,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
+  Jack.drawCube(8,0,12,0.055f, 0.247f, 0.212f, 0.05,ox,oy);
+ 
    
   
 

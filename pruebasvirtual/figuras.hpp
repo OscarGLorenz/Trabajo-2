@@ -23,6 +23,7 @@
         //void setColor(Colors); 
         void draw(int,int);
         //float getRadio();
+        void drawCube(float , float , float , float , float , float , float ,int,int);
      private:
         double radio;
         float coneHeight;
