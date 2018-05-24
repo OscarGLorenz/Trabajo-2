@@ -40,6 +40,12 @@ Klondike::Klondike(short klondikeMap[][SIZE]) {
 }
 
 std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_search) {
+  for (int i = 0; i < SIZE; i++) {
+    for (int j = 0; j < SIZE; j++) {
+      dist[i][j] = std::numeric_limits<int>::max(); // Poner distancia máxima
+    }
+  }
+
   bool s = v_search != nullptr; // Si se proporciona una lista, dar pasos de resolución
   std::list<SearchResult> search; // Lista de pasos de resolución
   std::list<Point> steps; // Auxiliar para los pasos de resolución

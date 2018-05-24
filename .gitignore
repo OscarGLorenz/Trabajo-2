@@ -7,7 +7,7 @@ main
 *.gch
 
 *.out
-
+*.json
 # Ignore the build and lib dirs
 build
 lib/*
