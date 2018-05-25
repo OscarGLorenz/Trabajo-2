@@ -1,4 +1,8 @@
-#include "GL/glut.h"
+#ifdef __APPLE__
+    #include "GLUT/glut.h"
+#else
+    #include "GL/glut.h"
+#endif
 
 #include "MapGenerator.hpp"
 #include "Klondike.hpp"
@@ -247,6 +251,9 @@ void OnDibuja(void) {
   }
 
   int main(int argc,char* argv[]) {
+    // Actualizar ruta del ejecutable
+    map.getCmdPath(argv);
+
     // Inicializaciones openGL
     //Creacion y definicion de la ventana
     glutInit(&argc, argv);

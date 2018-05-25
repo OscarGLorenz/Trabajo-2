@@ -121,7 +121,7 @@ void MapGenerator::createMap() {
 
   // Abrir plantilla
   std::fstream input;
-  std::string file = std::string(RELATIVE_PATH) + std::string(EMPTY_MAP);
+  std::string file = relative_path + std::string(RELATIVE_PATH) + std::string(EMPTY_MAP);
   input.open (file, std::fstream::in | std::fstream::binary);
 
   // Saltar cabecera del bmp
@@ -149,6 +149,7 @@ void MapGenerator::createMap() {
 
         // Generar nombre del archivo
         std::string str;
+        str += relative_path;
         str += RELATIVE_PATH;
         str.push_back( (char) lab->getMap(Point(b,a)) + '0');
         if (a == 11 && b == 11) // El del centro va al revés
@@ -216,7 +217,7 @@ void MapGenerator::createMap() {
 
   // Abrir archivo destino
   std::fstream output;
-  file = std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
+  file = relative_path + std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
   output.open (file, std::fstream::out | std::fstream::binary);
 
   // Escribir cabecera
@@ -240,9 +241,9 @@ GLuint MapGenerator::loadMap() {
   std::fstream file; // Archivo
   std::string file_str;
   if (original){
-    file_str = std::string(RELATIVE_PATH) + std::string(ORIGINAL_MAP);
+    file_str = relative_path + std::string(RELATIVE_PATH) + std::string(ORIGINAL_MAP);
   } else {
-    file_str = std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
+    file_str = relative_path + std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
   }
 
   file.open (file_str, std::fstream::in | std::fstream::binary);
@@ -294,4 +295,19 @@ void MapGenerator::displayMap(GLuint texture) {
   glEnd();
   glFlush();
   glDisable(GL_TEXTURE_2D);
+}
+
+void MapGenerator::getCmdPath(char ** argv) {
+    std::string str(argv[0]);
+
+    if (str[0] == '.')
+	str.erase(0,2);
+
+    std::size_t found = str.rfind(std::string(1,'/'));
+    if (found!=std::string::npos)
+	str.erase(found+1, str.length());
+    else
+	str.clear();
+
+  relative_path = str;
 }
