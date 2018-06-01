@@ -1,3 +1,0 @@
-
-
-g++ main.cpp figuras.cpp map.cpp src/Klondike.cpp -lm -std=c++11 -Wall -Isrc -L/usr/local/lib  -lGL -lGLU -lglut -o mov

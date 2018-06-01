@@ -1,5 +1,18 @@
+/******************************************************************************
+* ARCHIVO :        Camera.hpp
+*
+* DESCRIPCIÓN :
+*       Clase para manipular la cámara con el ratón, girar, moverse y zoom
+*
+* NOTA:
+*       Documentación de uso de las funciones en la cabecera (include/)
+*
+* AUTOR :    Óscar García Lorenz
+******************************************************************************/
+
+
 #include "Camera.hpp"
-#include <math.h>
+#include <cmath>
 
 void Camera::setAspect(int w, int h) {
   width = w;
@@ -25,6 +38,7 @@ void Camera::setTraslation(double x, double y, double z) {
 }
 
 void Camera::zoom(double zoom, double limit) {
+  // Multiplica la posición solo si no se pasa de los límites
   if((zoom > 1.0 && zoom*sqrt(pos[0]*pos[0]+pos[1]*pos[1]+pos[2]*pos[2]) <= limit) ||
   (zoom < 1.0 && zoom*sqrt(pos[0]*pos[0]+pos[1]*pos[1]+pos[2]*pos[2]) >= limit)) {
     oldPos[0] = pos[0] *= zoom;
@@ -38,8 +52,8 @@ void Camera::moveMode(bool enable, int x, int y) {
   if (enable) {
     screenToWorld(x, y, &oldTras[0], &oldTras[1], &oldTras[2]);
     // Limitar para no salirse del mapa
-    oldTras[0] = constrain(oldTras[0],-5.0f,5.0f);
-    oldTras[1] = constrain(oldTras[1],-5.0f,5.0f);
+    oldTras[0] = constrain(oldTras[0],-limitMove,limitMove);
+    oldTras[1] = constrain(oldTras[1],-limitMove,limitMove);
     oldTras[2] = 0;
   }
   oldX = x;
@@ -134,4 +148,8 @@ void Camera::screenToWorld(int x, int y, GLdouble *outX, GLdouble *outY, GLdoubl
   // Proyección inversa
   gluUnProject(wx,wy,wz,modelview,projection,viewport,outX,outY,outZ);
   glutPostRedisplay();
+}
+
+void Camera::setLimits(double limit) {
+  limitMove = limit;
 }

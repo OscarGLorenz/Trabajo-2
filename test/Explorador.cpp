@@ -1,3 +1,24 @@
+/*************************************************************
+*
+* ARCHIVO : Explorador.cpp
+*
+* DESCRIPCIÓN:
+* 	Contiene el main del programa, a lo largo de todo el
+* 	fichero se hacen llamadas a funciones de OpenGl
+*     y se definen funciones Callbacks
+*
+* AUTORES:
+*
+* 	Alejandro Redondo Ayala:
+*     Implementación de las figuras para representar el desarrollo
+*     del algoritmo y la lógica del minero
+*
+*   Óscar García Lorenz
+*	    Implementación de los objetos para controlar la cámara y
+*     los botones
+*
+*************************************************************/
+
 #ifdef __APPLE__
 #include "GLUT/glut.h"
 #else
@@ -8,15 +29,16 @@
 #include "Klondike.hpp"
 #include "Mapa.h"
 #include "Camera.hpp"
+#include "Button.hpp"
+#include "Figuras.hpp"
 
-#include <fstream>
 #include <vector>
-#include <cmath>
 #include <list>
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <functional>
+#include <chrono>
+#include <thread>
 
 #define ANCHO 800
 #define ALTO 800
@@ -26,181 +48,22 @@
 Klondike lab(MAPA);
 MapGenerator map(&lab);
 std::list<Point> solution;
+std::vector<SearchResult> v;
 
 Camera camera;
 
-// Texture datas structure
-GLuint KLtexture;
+GLuint KLtexture; // Texture datas structure
 
-// Posición de la tetera
-int ox = 11, oy = 11;
+Minero Jack;
+Cuadro Azul;
+Plano Base;
+Colors Casillas[23][23];
 
-int oldX, oldY;
-void Font(void *font,unsigned char *text,int x,int y) {
-  glRasterPos2i(x, y);
-
-  while( *text != '\0' )
-  {
-    glutBitmapCharacter( font, *text );
-    ++text;
-  }
-}
-
-class Button {
-private:
-  int   x;							/* top left x coord of the button */
-  int   y;							/* top left y coord of the button */
-  int   w;							/* the width of the button */
-  int   h;							/* the height of the button */
-  std::string label;						/* the text label of the button */
-  std::function<void()> callback;
-
-public:
-
-  int	  state;						/* the state, 1 if pressed, 0 otherwise */
-  int	  highlighted;					/* is the mouse cursor over the control? */
-
-  Button (int ox, int oy, int width, int height, std::string str, std::function<void()> call) {
-    x = ox;
-    y = oy;
-    w = width;
-    h = height;
-    state = highlighted = 0;
-    label = str;
-    callback = call;
-  }
-
-  bool ButtonClickTest(int cx,int cy) {
-    return cx > x && cx < x+w && cy > y && cy < y+h;
-  }
-
-  bool ButtonPress(int x,int y)  {
-      // Si el botón ha sido pulsado cambiar de estado
-  		if( ButtonClickTest(x,y) ) {
-  			state = 1;
-        return true;
-      } else
-      return false;
-  }
-
-  void ButtonRelease(int x,int y) {
-      // Si el botón ha sido soltado ejecutar la funcionalidad
-  		if( ButtonClickTest(oldX,oldY) &&	ButtonClickTest(x,y) )
-        callback();
-
-  		state = 0;
-  }
-
-  void ButtonPassive(int x,int y) {
-		if(ButtonClickTest(x,y) )	{
-			/*
-			 *	If the cursor has just arrived over the control, set the highlighted flag
-			 *	and force a redraw. The screen will not be redrawn again until the mouse
-			 *	is no longer over this control
-			 */
-			if( highlighted == 0 ) {
-				highlighted = 1;
-				glutPostRedisplay();
-			}
-		}
-		else
-
-		/*
-		 *	If the cursor is no longer over the control, then if the control
-		 *	is highlighted (ie, the mouse has JUST moved off the control) then
-		 *	we set the highlighting back to false, and force a redraw.
-		 */
-		if( highlighted == 1 ) {
-			highlighted = 0;
-			glutPostRedisplay();
-		}
-
-}
-
-  void draw() {
-    int fontx;
-    int fonty;
-    /*
-    *	We will indicate that the mouse cursor is over the button by changing its
-    *	colour.
-    */
-    if (highlighted)
-    glColor3f(0.7f,0.7f,0.8f);
-    else
-    glColor3f(0.6f,0.6f,0.6f);
-
-    /*
-    *	draw background for the button.
-    */
-    glBegin(GL_QUADS);
-    glVertex2i( x     , y      );
-    glVertex2i( x     , y+h );
-    glVertex2i( x+w, y+h );
-    glVertex2i( x+w, y      );
-    glEnd();
-
-    /*
-    *	Draw an outline around the button with width 3
-    */
-    glLineWidth(3);
-
-    /*
-    *	The colours for the outline are reversed when the button.
-    */
-    if (state)
-    glColor3f(0.4f,0.4f,0.4f);
-    else
-    glColor3f(0.8f,0.8f,0.8f);
-
-    glBegin(GL_LINE_STRIP);
-    glVertex2i( x+w, y      );
-    glVertex2i( x     , y      );
-    glVertex2i( x     , y+h );
-    glEnd();
-
-    if (state)
-    glColor3f(0.8f,0.8f,0.8f);
-    else
-    glColor3f(0.4f,0.4f,0.4f);
-
-    glBegin(GL_LINE_STRIP);
-    glVertex2i( x     , y+h );
-    glVertex2i( x+w, y+h );
-    glVertex2i( x+w, y      );
-    glEnd();
-
-    glLineWidth(1);
-
-    fontx = x + (w - glutBitmapLength(GLUT_BITMAP_HELVETICA_10,(unsigned char *) label.c_str())) / 2 ;
-    fonty = y + (h+10)/2;
-
-    /*
-    *	if the button is pressed, make it look as though the string has been pushed
-    *	down. It's just a visual thing to help with the overall look....
-    */
-    if (state) {
-      fontx+=2;
-      fonty+=2;
-    }
-
-    /*
-    *	If the cursor is currently over the button we offset the text string and draw a shadow
-    */
-    if(highlighted)
-    {
-      glColor3f(0,0,0);
-      Font(GLUT_BITMAP_HELVETICA_10,(unsigned char *) label.c_str(),fontx,fonty);
-      fontx--;
-      fonty--;
-    }
-
-    glColor3f(1,1,1);
-    Font(GLUT_BITMAP_HELVETICA_10,(unsigned char *) label.c_str(),fontx,fonty);
-  }
-
-};
-std::vector<Button> buttons;
-
+//PRUEBAS MOV
+// Casilla del mapa
+int ox = 11, oy = 11,oxblue,oyblue;
+unsigned int k=-1;
+int i,j;
 
 // Función que actualiza la pantalla
 void OnDibuja(void) {
@@ -210,29 +73,20 @@ void OnDibuja(void) {
   // Mapa
   map.displayMap(KLtexture);
 
-  // Tetera
-  glColor3f(0.0f,1.0f,0.0f);
-  glEnable(GL_LIGHTING);
-  glPushMatrix();
-  glTranslatef(-0.144f+(oy-11.0)*0.422,-0.190f+(11.0-ox)*0.422,0.12); // Mover muñeco
-  glRotatef(90, 1,0,0);
-  glutSolidTeapot(0.15);
-  glPopMatrix();
+  Base.draw(0,0);
+  Jack.draw(ox,oy);
+
+  for(i=0;i<23;i++){
+     for(j=0;j<23;j++){
+        Azul.setColor(Casillas[i][j]);
+        Azul.draw(i,j);
+     }
+  }
+
   glDisable(GL_LIGHTING);
-
-  // Plano horizontal
-  glColor4f(1.0f,1.0f,1.0f,1.0f);
-  glBegin(GL_QUADS);
-  glVertex3f(-100.0f,-100.0f,-0.05f);
-  glVertex3f(100.0f,-100.0f,-0.05f);
-  glVertex3f(100.0f,100.0f,-0.05f);
-  glVertex3f(-100.0f,100.0f,-0.05f);
-  glEnd();
-
-
   if (!solution.empty()) {
     glLineWidth(3.5);
-    glColor4f(1.0, 0.0, 0.0,0.5f);
+    glColor4f(1.0, 1.0, 0.0,0.7f);
     glBegin(GL_LINE_STRIP);
     for (auto sol = solution.begin(); sol != --solution.end(); ++sol) {
       double x1 = -0.144f+(sol->y-11.0)*0.422;
@@ -251,10 +105,11 @@ void OnDibuja(void) {
     glColor4f(1.0, 0.0, 0.0,1.0f);
     glEnd();
   }
+  glEnable(GL_LIGHTING);
 
   camera.look2D();
 
-  for (auto &b : buttons)
+  for (auto &b : Button::Buttons)
     b.draw();
 
   camera.look3D();
@@ -265,20 +120,16 @@ void OnDibuja(void) {
 }
 
 void OnMouseBtn(int button, int state, int x, int y) {
-  // Guardar punto de la pantalla
-  oldX = x;
-  oldY = y;
-
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    for (auto &b : buttons) {
-      if(b.ButtonPress(x,y))
+    for (auto &b : Button::Buttons) {
+      if(b.press(x,y))
         return;
     }
 
     camera.moveMode(true,x,y);
   } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-    for (auto &b : buttons)
-      b.ButtonRelease(x,y);
+    for (auto &b : Button::Buttons)
+      b.release(x,y);
 
     camera.moveMode(false,x,y);
   } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
@@ -302,30 +153,8 @@ void OnMotion(int x, int y) {
   /*
   *	if the mouse moved over the control
   */
-  for (auto& b : buttons) {
-
-    if( b.ButtonClickTest(x,y) ) {
-      /*
-      *	If the cursor has just arrived over the control, set the highlighted flag
-      *	and force a redraw. The screen will not be redrawn again until the mouse
-      *	is no longer over this control
-      */
-      if( b.highlighted == 0 ) {
-        b.highlighted = 1;
-        glutPostRedisplay();
-      }
-    }
-    else
-
-    /*
-    *	If the cursor is no longer over the control, then if the control
-    *	is highlighted (ie, the mouse has JUST moved off the control) then
-    *	we set the highlighting back to false, and force a redraw.
-    */
-    if( b.highlighted == 1 ) {
-      b.highlighted = 0;
-      glutPostRedisplay();
-    }
+  for (auto& b : Button::Buttons) {
+    b.motion(x,y);
   }
 }
 // Al pulsar una tecla
@@ -365,6 +194,20 @@ void OnKeyboardDown(unsigned char key, int x, int y) {
 
 }
 
+ void myLogic(){
+  static int status = 1;
+
+ if(Jack.position[4]>=20 && status ==1) status=0;
+ if(Jack.position[4]<=-20 && status == 0) status=1;
+  switch(status){
+     case 1:
+         Jack.position[4]+=2.0; break;
+     case 0:
+         Jack.position[4]-=2.0; break;
+  }
+ }
+
+
 int main(int argc,char* argv[]) {
 
   // Inicializaciones openGL
@@ -374,10 +217,16 @@ int main(int argc,char* argv[]) {
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
   glutCreateWindow("Ejemplo GLUT");
   glEnable(GL_LIGHT0);
+  //TRANSPARENCIAS
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   camera.setAspect(ANCHO,ALTO);
   camera.setPrespective(40.0, ANCHO/ALTO, 0.1, 50);
   camera.setPosition(0,-10,10);
+  camera.setLimits(5.0);
+
 
   // Definici�n call backs de GLUT
   glutDisplayFunc(OnDibuja);
@@ -385,35 +234,61 @@ int main(int argc,char* argv[]) {
   glutMouseFunc(OnMouseBtn);
   glutMotionFunc(OnMouseMove);
   glutPassiveMotionFunc(OnMotion);
+  glutIdleFunc(myLogic);
 
   // Actualizar ruta del ejecutable
   map.getCmdPath(argv);
   // Carga la textura
   KLtexture= map.loadMap();
 
-  buttons.push_back(Button(5,5, 100,25, "INICIO", [&](){
+  // Carga las casillas con sus valores iniciales (no visitado)
+  for(int i=0; i<23; i++){
+     for(int j=0; j<23; j++){
+        if(MAPA[i][j]<=0)
+         Casillas[i][j]=Colors::VOID;
+        else
+           Casillas[i][j]=Colors::RED;
+     }
+  }
+
+  Button::Buttons.push_back(Button(5,5, 100,25, "REINICIAR", [&](){
     ox=11;
     oy=11;
   }));
 
-  buttons.push_back(Button(115,5, 100,25, "RANDOM", [&](){
+  Button::Buttons.push_back(Button(5,40, 150,25, "GENERAR MAPA NUEVO", [&](){
     map.random(10);
     map.createMap();
     ox = oy = 11;
     KLtexture = map.loadMap();
     if (!solution.empty()) {
       solution.empty();
-      solution = lab.solve(Point(ox,oy));
+      solution = lab.solve(Point(ox,oy),&v);
     }
   }));
 
-  buttons.push_back(Button(225,5, 100,25, "OCULTAR", [&](){
+  Button::Buttons.push_back(Button(225,5, 100,25, "VER SOLUCION", [&](){
+    static bool status = false;
+    if (status)
     solution.clear();
+    else
+    solution = lab.solve(Point(ox,oy),&v);
+    status = !status;
   }));
 
-  buttons.push_back(Button(335,5, 100,25, "MOSTRAR", [&](){
-    solution = lab.solve(Point(ox,oy));
+  Button::Buttons.push_back(Button(335,5, 100,25, "VER ALGORITMO", [&](){
+
   }));
+  Button::Buttons.push_back(Button(445,5, 120,25, "MODO INTERACTIVO", [&](){
+
+  }));
+
+
+  Button::Buttons.push_back(Button(690,5, 100,25, "INSTRUCCIONES", [&](){
+
+  }));
+
+
   // bucle del programa
   glutMainLoop();
 
