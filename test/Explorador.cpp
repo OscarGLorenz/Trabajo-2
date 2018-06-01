@@ -1,23 +1,24 @@
 #ifdef __APPLE__
-    #include "GLUT/glut.h"
+#include "GLUT/glut.h"
 #else
-    #include "GL/glut.h"
+#include "GL/glut.h"
 #endif
 
 #include "MapGenerator.hpp"
 #include "Klondike.hpp"
 #include "Mapa.h"
+#include "Camera.hpp"
 
 #include <fstream>
 #include <vector>
 #include <cmath>
 #include <list>
 #include <iostream>
+#include <string>
+#include <cstring>
+#include <functional>
 
-// Limita una variable entre un máximo y un mínimo. Arduino
-#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
-
-#define  ANCHO 800
+#define ANCHO 800
 #define ALTO 800
 
 #define ESC 27
@@ -26,22 +27,182 @@ Klondike lab(MAPA);
 MapGenerator map(&lab);
 std::list<Point> solution;
 
+Camera camera;
+
 // Texture datas structure
 GLuint KLtexture;
 
 // Posición de la tetera
 int ox = 11, oy = 11;
 
-GLdouble tras[3] = {0,0,0}; // Traslación actual
-GLdouble pos[3] = {0,-10,10}; // Posición actual
-GLdouble oldPos[3] = {0,-10,10}; // Posición anterior
-GLdouble oldTras[3] = {0,0,0}; // Traslación anterior
-int oldX = ANCHO/2, oldY = ALTO/2; // Posición del cursor anterior
+int oldX, oldY;
+void Font(void *font,unsigned char *text,int x,int y) {
+  glRasterPos2i(x, y);
 
-// Modos rotación y movimientos con el ratón
-bool rotate = false, move= false;
+  while( *text != '\0' )
+  {
+    glutBitmapCharacter( font, *text );
+    ++text;
+  }
+}
 
-// Funci�n que actualiza la pantalla
+class Button {
+private:
+  int   x;							/* top left x coord of the button */
+  int   y;							/* top left y coord of the button */
+  int   w;							/* the width of the button */
+  int   h;							/* the height of the button */
+  std::string label;						/* the text label of the button */
+  std::function<void()> callback;
+
+public:
+
+  int	  state;						/* the state, 1 if pressed, 0 otherwise */
+  int	  highlighted;					/* is the mouse cursor over the control? */
+
+  Button (int ox, int oy, int width, int height, std::string str, std::function<void()> call) {
+    x = ox;
+    y = oy;
+    w = width;
+    h = height;
+    state = highlighted = 0;
+    label = str;
+    callback = call;
+  }
+
+  bool ButtonClickTest(int cx,int cy) {
+    return cx > x && cx < x+w && cy > y && cy < y+h;
+  }
+
+  bool ButtonPress(int x,int y)  {
+      // Si el botón ha sido pulsado cambiar de estado
+  		if( ButtonClickTest(x,y) ) {
+  			state = 1;
+        return true;
+      } else
+      return false;
+  }
+
+  void ButtonRelease(int x,int y) {
+      // Si el botón ha sido soltado ejecutar la funcionalidad
+  		if( ButtonClickTest(oldX,oldY) &&	ButtonClickTest(x,y) )
+        callback();
+
+  		state = 0;
+  }
+
+  void ButtonPassive(int x,int y) {
+		if(ButtonClickTest(x,y) )	{
+			/*
+			 *	If the cursor has just arrived over the control, set the highlighted flag
+			 *	and force a redraw. The screen will not be redrawn again until the mouse
+			 *	is no longer over this control
+			 */
+			if( highlighted == 0 ) {
+				highlighted = 1;
+				glutPostRedisplay();
+			}
+		}
+		else
+
+		/*
+		 *	If the cursor is no longer over the control, then if the control
+		 *	is highlighted (ie, the mouse has JUST moved off the control) then
+		 *	we set the highlighting back to false, and force a redraw.
+		 */
+		if( highlighted == 1 ) {
+			highlighted = 0;
+			glutPostRedisplay();
+		}
+
+}
+
+  void draw() {
+    int fontx;
+    int fonty;
+    /*
+    *	We will indicate that the mouse cursor is over the button by changing its
+    *	colour.
+    */
+    if (highlighted)
+    glColor3f(0.7f,0.7f,0.8f);
+    else
+    glColor3f(0.6f,0.6f,0.6f);
+
+    /*
+    *	draw background for the button.
+    */
+    glBegin(GL_QUADS);
+    glVertex2i( x     , y      );
+    glVertex2i( x     , y+h );
+    glVertex2i( x+w, y+h );
+    glVertex2i( x+w, y      );
+    glEnd();
+
+    /*
+    *	Draw an outline around the button with width 3
+    */
+    glLineWidth(3);
+
+    /*
+    *	The colours for the outline are reversed when the button.
+    */
+    if (state)
+    glColor3f(0.4f,0.4f,0.4f);
+    else
+    glColor3f(0.8f,0.8f,0.8f);
+
+    glBegin(GL_LINE_STRIP);
+    glVertex2i( x+w, y      );
+    glVertex2i( x     , y      );
+    glVertex2i( x     , y+h );
+    glEnd();
+
+    if (state)
+    glColor3f(0.8f,0.8f,0.8f);
+    else
+    glColor3f(0.4f,0.4f,0.4f);
+
+    glBegin(GL_LINE_STRIP);
+    glVertex2i( x     , y+h );
+    glVertex2i( x+w, y+h );
+    glVertex2i( x+w, y      );
+    glEnd();
+
+    glLineWidth(1);
+
+    fontx = x + (w - glutBitmapLength(GLUT_BITMAP_HELVETICA_10,(unsigned char *) label.c_str())) / 2 ;
+    fonty = y + (h+10)/2;
+
+    /*
+    *	if the button is pressed, make it look as though the string has been pushed
+    *	down. It's just a visual thing to help with the overall look....
+    */
+    if (state) {
+      fontx+=2;
+      fonty+=2;
+    }
+
+    /*
+    *	If the cursor is currently over the button we offset the text string and draw a shadow
+    */
+    if(highlighted)
+    {
+      glColor3f(0,0,0);
+      Font(GLUT_BITMAP_HELVETICA_10,(unsigned char *) label.c_str(),fontx,fonty);
+      fontx--;
+      fonty--;
+    }
+
+    glColor3f(1,1,1);
+    Font(GLUT_BITMAP_HELVETICA_10,(unsigned char *) label.c_str(),fontx,fonty);
+  }
+
+};
+std::vector<Button> buttons;
+
+
+// Función que actualiza la pantalla
 void OnDibuja(void) {
   //Borrado de la pantalla
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -91,217 +252,170 @@ void OnDibuja(void) {
     glEnd();
   }
 
+  camera.look2D();
 
-  glLoadIdentity();
+  for (auto &b : buttons)
+    b.draw();
 
-  // Posiciona el punto de vista
-  gluLookAt(pos[0]+tras[0],pos[1]+tras[1],pos[2]+tras[2],
-    tras[0],tras[1],tras[2],	        // hacia que punto mira
-    0.0, 0.0, 1.0);         // vector "UP"  (vertical positivo)
+  camera.look3D();
 
-    //Al final, cambiar el buffer
-    glutSwapBuffers();
-    glutPostRedisplay();//se le indica que redibuje la pantalla
-  }
+  //Al final, cambiar el buffer
+  glutSwapBuffers();
+  glutPostRedisplay();
+}
 
-  // Transforma la posición del cursos en la pantalla a la posición en el mundo
-  void screenToWorld(int x, int y, GLdouble *outX, GLdouble *outY, GLdouble *outZ) {
-    GLfloat wx = x,wy,wz; // Coordenadas auxiliares
-    GLint viewport[4]; // Punto de vista
-    glGetIntegerv(GL_VIEWPORT,viewport); // Obtener punto de vista
-    y = wy = viewport[3] -y; // Trasformar la componente vertical de la pantalla
-    GLdouble modelview[16],projection[16]; // Matriz de proyección y posición
-    glGetDoublev(GL_MODELVIEW_MATRIX,modelview); // Obtener matriz de posición
-    glGetDoublev(GL_PROJECTION_MATRIX,projection); // Obtener matriz de posición
+void OnMouseBtn(int button, int state, int x, int y) {
+  // Guardar punto de la pantalla
+  oldX = x;
+  oldY = y;
 
-    glReadPixels(x,y,1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&wz); // Obtener profundidad
-    // Proyección inversa
-    gluUnProject(wx,wy,wz,modelview,projection,viewport,outX,outY,outZ);
-    glutPostRedisplay();
-  }
-
-  void OnMouseBtn(int button, int state, int x, int y) {
-    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-      move = true;
-      // Obtener traslación del mundo y guardar
-      screenToWorld(x, y, &oldTras[0], &oldTras[1], &oldTras[2]);
-      // Limitar para no salirse del mapa
-      oldTras[0] = constrain(oldTras[0],-5.0f,5.0f);
-      oldTras[1] = constrain(oldTras[1],-5.0f,5.0f);
-      oldTras[2] = 0;
-    } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-      move = false;
-    } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-      rotate = true;
-      // Guardar punto de la pantalla
-      oldX = x;
-      oldY = y;
-      // Guardar posición del mundo
-      oldPos[0] = pos[0];
-      oldPos[1] = pos[1];
-      oldPos[2] = pos[2];
-    } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
-      rotate = false;
-    } else if (button == 4) {
-      if (1.1*sqrt(pos[0]*pos[0]+pos[1]*pos[1]+pos[2]*pos[2]) < 20) {
-        oldPos[0] = pos[0] *= 1.1;
-        oldPos[1] = pos[1] *= 1.1;
-        oldPos[2] = pos[2] *= 1.1;
-      }
-    } else if (button == 3) {
-      if (0.9*sqrt(pos[0]*pos[0]+pos[1]*pos[1]+pos[2]*pos[2]) > 1) {
-        oldPos[0] = pos[0] *= 0.9;
-        oldPos[1] = pos[1] *= 0.9;
-        oldPos[2] = pos[2] *= 0.9;
-      }
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    for (auto &b : buttons) {
+      if(b.ButtonPress(x,y))
+        return;
     }
 
+    camera.moveMode(true,x,y);
+  } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+    for (auto &b : buttons)
+      b.ButtonRelease(x,y);
+
+    camera.moveMode(false,x,y);
+  } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+    camera.rotateMode(true,x,y);
+  } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
+    camera.rotateMode(false,x,y);
+  } else if (button == 4) {
+    camera.zoom(1.1,20);
+  } else if (button == 3) {
+    camera.zoom(0.9,1);
   }
 
-  void OnMouseMove(int x, int y) {
-    if (move) {
-      GLdouble aux[3];
-      // Obtener traslación del mundo
-      screenToWorld(x, y, &aux[0], &aux[1], &aux[2]);
+}
 
-      // Desplazar
-      tras[0] += (oldTras[0] - aux[0])/10.0;
-      tras[1] += (oldTras[1] - aux[1])/10.0;
+void OnMouseMove(int x, int y) {
+  camera.mouseMove(x,y);
+}
 
-      // Limitar para no salirse del mapa
-      tras[0] = constrain(tras[0],-5.0,5.0);
-      tras[1] = constrain(tras[1],-5.0,5.0);
-      tras[2] = 0; // Forzar al plano horizontal
-    } else if (rotate) {
-      float al = (float) (oldX-x)/200.0;  // Ángulo polar, horizontal
-      float be = (float) (y-oldY)/200.0; // Azimut, vertical
+void OnMotion(int x, int y) {
 
-      // Antiguo azimut
-      float oldBe = atan(oldPos[2]/sqrt(oldPos[0]*oldPos[0]+oldPos[1]*oldPos[1]));
+  /*
+  *	if the mouse moved over the control
+  */
+  for (auto& b : buttons) {
 
-      // Limitar ángulo beta a 0,pi/2
-      be = constrain(be+oldBe, 0.01, 3.141/2) - oldBe;
+    if( b.ButtonClickTest(x,y) ) {
+      /*
+      *	If the cursor has just arrived over the control, set the highlighted flag
+      *	and force a redraw. The screen will not be redrawn again until the mouse
+      *	is no longer over this control
+      */
+      if( b.highlighted == 0 ) {
+        b.highlighted = 1;
+        glutPostRedisplay();
+      }
+    }
+    else
 
-      // Vector unitario para eje de beta
-      float a = (float)oldPos[1]/sqrt(oldPos[0]*oldPos[0]+oldPos[1]*oldPos[1]);
-      float b = -(float)oldPos[0]/sqrt(oldPos[0]*oldPos[0]+oldPos[1]*oldPos[1]);
-
-      // Girar respecto a (a,b,0) un ángulo be
-      pos[0] = oldPos[0]*(cos(be)+a*a*(1-cos(be))) + oldPos[1]*a*b*(1-cos(be))           + oldPos[2]*b*sin(be);
-      pos[1] = oldPos[0]*a*b*(1-cos(be))           + oldPos[1]*(cos(be)+b*b*(1-cos(be))) + oldPos[2]*-a*sin(be);
-      pos[2] = oldPos[0]*-b*sin(be)                + oldPos[1]*a*sin(be)                 + oldPos[2]*cos(be);
-
-      // Girar respecto a (0,0,1) un ángulo al
-      pos[0] = pos[0]*cos(al)+pos[1]*-sin(al);
-      pos[1] = pos[0]*sin(al)+pos[1]*cos(al) ;
+    /*
+    *	If the cursor is no longer over the control, then if the control
+    *	is highlighted (ie, the mouse has JUST moved off the control) then
+    *	we set the highlighting back to false, and force a redraw.
+    */
+    if( b.highlighted == 1 ) {
+      b.highlighted = 0;
+      glutPostRedisplay();
     }
   }
+}
+// Al pulsar una tecla
+void OnKeyboardDown(unsigned char key, int x, int y) {
+  Direction c = Direction::NONE;
+  // Casillas posibles
+  std::list<Point> ady = lab.adyacent(Point(ox,oy));
+  // Detectar tecla
+  switch(key) {
+    case ESC:     exit(1);
+    case 'W':
+    case 'w': c = Direction::NORTH; break;
+    case 'D':
+    case 'd': c = Direction::EAST; break;
+    case 'X':
+    case 'x': c = Direction::SOUTH; break;
+    case 'A':
+    case 'a': c = Direction::WEST; break;
+    case 'Q':
+    case 'q': c = Direction::NORTHWEST; break;
+    case 'E':
+    case 'e': c = Direction::NORTHEAST; break;
+    case 'Z':
+    case 'z': c = Direction::SOUTHWEST; break;
+    case 'C':
+    case 'c': c = Direction::SOUTHEAST; break;
 
-  // Al pulsar una tecla
-  void OnKeyboardDown(unsigned char key, int x, int y) {
-    Direction c = Direction::NONE;
-    // Casillas posibles
-    std::list<Point> ady = lab.adyacent(Point(ox,oy));
-    // Detectar tecla
-    switch(key) {
-      case ESC:     exit(1);
-      case 'W':
-      case 'w': c = Direction::NORTH; break;
-      case 'D':
-      case 'd': c = Direction::EAST; break;
-      case 'X':
-      case 'x': c = Direction::SOUTH; break;
-      case 'A':
-      case 'a': c = Direction::WEST; break;
-      case 'Q':
-      case 'q': c = Direction::NORTHWEST; break;
-      case 'E':
-      case 'e': c = Direction::NORTHEAST; break;
-      case 'Z':
-      case 'z': c = Direction::SOUTHWEST; break;
-      case 'C':
-      case 'c': c = Direction::SOUTHEAST; break;
-      case 'S':
-      case 's': ox = 11; oy = 11; break;
-      case 'F':
-      case 'f': solution = lab.solve(Point(ox,oy)); break;
-      case 'G':
-      case 'g': solution.clear(); break;
-      case 'R':
-      case 'r':
-
-      map.random(10);
-      map.createMap();
-      ox = oy = 11;
-      KLtexture = map.loadMap();
-      if (!solution.empty()) {
-        solution.empty();
-        solution = lab.solve(Point(ox,oy));
-      }
-
-    }
-    // Buscar si es un movimiento posible
-    for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
-      if (it->dir == c) {
-        // Mover muñeco
-        ox = it->x;
-        oy = it->y;
-      }
+  }
+  // Buscar si es un movimiento posible
+  for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
+    if (it->dir == c) {
+      // Mover muñeco
+      ox = it->x;
+      oy = it->y;
     }
   }
 
-  int main(int argc,char* argv[]) {
-    // Actualizar ruta del ejecutable
-    map.getCmdPath(argv);
+}
 
-    // Inicializaciones openGL
-    //Creacion y definicion de la ventana
-    glutInit(&argc, argv);
-    glutInitWindowSize(ANCHO,ALTO);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-    glutCreateWindow("Ejemplo GLUT");
+int main(int argc,char* argv[]) {
 
-    //Habilitar las luces, la renderizacion y el color de los materiales
-    glEnable(GL_LIGHT0);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  // Inicializaciones openGL
+  //Creacion y definicion de la ventana
+  glutInit(&argc, argv);
+  glutInitWindowSize(ANCHO,ALTO);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+  glutCreateWindow("Ejemplo GLUT");
+  glEnable(GL_LIGHT0);
 
-    //definir la proyeccion
-    glMatrixMode(GL_PROJECTION);
-    gluPerspective( 40.0, ANCHO/ALTO, 0.1, 50);
+  camera.setAspect(ANCHO,ALTO);
+  camera.setPrespective(40.0, ANCHO/ALTO, 0.1, 50);
+  camera.setPosition(0,-10,10);
 
-    // color del fondo
-    glClearColor(1.0f,1.0f,1.0f,0.0f);
+  // Definici�n call backs de GLUT
+  glutDisplayFunc(OnDibuja);
+  glutKeyboardFunc(OnKeyboardDown);
+  glutMouseFunc(OnMouseBtn);
+  glutMotionFunc(OnMouseMove);
+  glutPassiveMotionFunc(OnMotion);
 
-    // Define el punto de vista
-    glMatrixMode(GL_MODELVIEW);
+  // Actualizar ruta del ejecutable
+  map.getCmdPath(argv);
+  // Carga la textura
+  KLtexture= map.loadMap();
 
-    // Definici�n call backs de GLUT
-    glutDisplayFunc(OnDibuja);
-    glutKeyboardFunc(OnKeyboardDown);
-    glutMouseFunc(OnMouseBtn);
-    glutMotionFunc(OnMouseMove);
+  buttons.push_back(Button(5,5, 100,25, "INICIO", [&](){
+    ox=11;
+    oy=11;
+  }));
 
-    // Carga la textura
-    KLtexture= map.loadMap();
+  buttons.push_back(Button(115,5, 100,25, "RANDOM", [&](){
+    map.random(10);
+    map.createMap();
+    ox = oy = 11;
+    KLtexture = map.loadMap();
+    if (!solution.empty()) {
+      solution.empty();
+      solution = lab.solve(Point(ox,oy));
+    }
+  }));
 
-    std::cout << "Movimiento" << std::endl;
-    std::cout << "   QWE    " << std::endl;
-    std::cout << "   A D    " << std::endl;
-    std::cout << "   ZXC    " << std::endl;
-    std::cout << "Nuevo mapa: R" << std::endl;
-    std::cout << "Mostrar solución: F" << std::endl;
-    std::cout << "Quitar solución: G" << std::endl;
-    std::cout << "Volver al centro: S" << std::endl;
-    std::cout << "Mover cámara: clic izq y arrastrar" << std::endl;
-    std::cout << "Rotar cámara: clic der y arrastrar" << std::endl;
-    std::cout << "Zoom: rueda del ratón" << std::endl;
+  buttons.push_back(Button(225,5, 100,25, "OCULTAR", [&](){
+    solution.clear();
+  }));
 
+  buttons.push_back(Button(335,5, 100,25, "MOSTRAR", [&](){
+    solution = lab.solve(Point(ox,oy));
+  }));
+  // bucle del programa
+  glutMainLoop();
 
-    // bucle del programa
-    glutMainLoop();
-
-    return 0;
-  }
+  return 0;
+}
