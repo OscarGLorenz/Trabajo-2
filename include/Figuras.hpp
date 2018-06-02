@@ -12,7 +12,8 @@
 
 #ifndef FIGURAS_HPP
 #define FIGURAS_HPP
-
+#include <list>
+#include "Klondike.hpp"
 /*
 * Clase enumerada : Colors
 * -----------------------------------------------------------
@@ -63,6 +64,7 @@ public:
 
   float Color[4];
   void setColor(Colors);
+  Colors getColor();
   virtual void draw(int,int)=0;
 };
 
@@ -187,7 +189,7 @@ public:
 * Atributo: solution
 * --------------------------------------------------------------
 *
-* Lista que contiene la solución final 
+* Lista que contiene la solución final
 *
 * --------------------------------------------------------------
 * Método: setList
@@ -196,22 +198,20 @@ public:
 * Actualiza el paŕametro solution con la solución final
 *
 * --------------------------------------------------------------
-* Método drawArc 
+* Método drawArc
 * --------------------------------------------------------------
 *
-* Dibuja la solución final por medio de arcos que se van 
+* Dibuja la solución final por medio de arcos que se van
 * dibujando en orden para mostrar el camino a la solución.
-* 
+*
 *
 * --------------------------------------------------------------
 */
 class Arco {
      public:
-     std::list<Point> solution;
-     void setList(Klondike);
      void drawArc( std::list<Point> &solution, int);
-  
-  
+
+
   };
 
 

@@ -54,17 +54,22 @@ Camera camera;
 
 GLuint KLtexture; // Texture datas structure
 
-Minero Jack;
-Cuadro Azul;
-Plano Base;
-Colors Casillas[23][23];
+Minero jack;
+Cuadro cuadros[23][23];
+Plano base;
 bool visited[23][23];
+Arco arco;
 
-//PRUEBAS MOV
 // Casilla del mapa
-int ox = 11, oy = 11,oxblue,oyblue;
-unsigned int k=-1;
-int i,j;
+int ox = 11, oy = 11;
+
+int adv = 0;
+std::thread advance([&](){
+  for(;;) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    adv++;
+  }
+});
 
 // Función que actualiza la pantalla
 void OnDibuja(void) {
@@ -74,39 +79,14 @@ void OnDibuja(void) {
   // Mapa
   map.displayMap(KLtexture);
 
-  Base.draw(0,0);
-  Jack.draw(ox,oy);
+  base.draw(0,0);
+  jack.draw(ox,oy);
 
-  for(i=0;i<23;i++){
-    for(j=0;j<23;j++){
-      Azul.setColor(Casillas[i][j]);
-      Azul.draw(i,j);
-    }
-  }
+  for(int i=0; i<23; i++)
+    for(int j=0; j<23; j++)
+      cuadros[i][j].draw(i,j);
 
-  glDisable(GL_LIGHTING);
-  if (!solution.empty()) {
-    glLineWidth(3.5);
-    glColor4f(1.0, 1.0, 0.0,0.7f);
-    glBegin(GL_LINE_STRIP);
-    for (auto sol = solution.begin(); sol != --solution.end(); ++sol) {
-      double x1 = -0.144f+(sol->y-11.0)*0.422;
-      double x2 = -0.144f+(std::next(sol)->y-11.0)*0.422;
-      double y1 = -0.190f+(11.0-sol->x)*0.422;
-      double y2 = -0.190f+(11.0-std::next(sol)->x)*0.422;
-
-      for (int t = 0; t <= 20; t++) {
-        double alpha = (double)t*M_PI/20.0;
-        double x = (x1-x2)/2.0 * cos(alpha) + (x1+x2)/2.0;
-        double y = (y1-y2)/2.0 * cos(alpha) + (y1+y2)/2.0;
-        double z = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))/2.0 * sin(alpha);
-        glVertex3f(x,y,z);
-      }
-    }
-    glColor4f(1.0, 0.0, 0.0,1.0f);
-    glEnd();
-  }
-  glEnable(GL_LIGHTING);
+  arco.drawArc(solution,adv);
 
   camera.look2D();
 
@@ -162,13 +142,13 @@ void OnKeyboardDown(unsigned char key, int x, int y) {
 void myLogic(){
   static int status = 1;
 
-  if(Jack.position[4]>=20 && status ==1) status=0;
-  if(Jack.position[4]<=-20 && status == 0) status=1;
+  if(jack.position[4]>=20 && status ==1) status=0;
+  if(jack.position[4]<=-20 && status == 0) status=1;
   switch(status){
     case 1:
-    Jack.position[4]+=2.0; break;
+    jack.position[4]+=2.0; break;
     case 0:
-    Jack.position[4]-=2.0; break;
+    jack.position[4]-=2.0; break;
   }
 }
 
@@ -210,9 +190,9 @@ int main(int argc,char* argv[]) {
   for(int i=0; i<23; i++){
     for(int j=0; j<23; j++){
       if(MAPA[i][j]<=0)
-      Casillas[i][j]=Colors::VOID;
+      cuadros[i][j].setColor(Colors::VOID);
       else
-      Casillas[i][j]=Colors::RED;
+      cuadros[i][j].setColor(Colors::RED);
     }
   }
 
@@ -221,8 +201,8 @@ int main(int argc,char* argv[]) {
     for (int i = 0; i < 23; i++) {
       for (int j = 0; j < 23; j++) {
         visited[i][j] = false;
-        if (Casillas[i][j] != Colors::VOID)
-        Casillas[i][j] = Colors::RED;
+        if (cuadros[i][j].getColor() != Colors::VOID)
+        cuadros[i][j].setColor(Colors::RED);
       }
     }
   }));
@@ -239,18 +219,21 @@ int main(int argc,char* argv[]) {
     for (int i = 0; i < 23; i++) {
       for (int j = 0; j < 23; j++) {
         visited[i][j] = false;
-        if (Casillas[i][j] != Colors::VOID)
-        Casillas[i][j] = Colors::RED;
+        if (cuadros[i][j].getColor() != Colors::VOID)
+        cuadros[i][j].setColor(Colors::RED);
       }
     }
+    adv = 0;
   }));
 
   Button::Buttons.push_back(Button(225,5, 100,25, "VER SOLUCION", [&](){
     static bool status = false;
     if (status)
     solution.clear();
-    else
-    solution = lab.solve(Point(ox,oy),&v);
+    else {
+      solution = lab.solve(Point(ox,oy),&v);
+      adv = 0;
+    }
     status = !status;
   }));
 
@@ -274,15 +257,15 @@ int main(int argc,char* argv[]) {
     for (int i = 0; i < 23; i++) {
       for (int j = 0; j < 23; j++) {
         if(visited[i][j])
-        Casillas[i][j] = Colors::GREEN;
+        cuadros[i][j].setColor(Colors::GREEN);
 
-        if (Casillas[i][j] == Colors::BLUE)
-        Casillas[i][j] = Colors::RED;
+        if (cuadros[i][j].getColor() == Colors::BLUE)
+        cuadros[i][j].setColor(Colors::RED);
       }
     }
     ady = lab.adyacent(Point(ox,oy));
     for (auto it = ady.begin(); it != ady.end(); ++it){
-      Casillas[it->x][it->y] = Colors::BLUE;
+      cuadros[it->x][it->y].setColor(Colors::BLUE);
     }
 
   };
@@ -319,10 +302,6 @@ int main(int argc,char* argv[]) {
     }
     interactive = !interactive;
   }));
-
-
-
-
 
   // bucle del programa
   glutMainLoop();

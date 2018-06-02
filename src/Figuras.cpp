@@ -15,20 +15,21 @@
 *
 *     Óscar García Lorenz
 *
-*        Implementación y forma base del pico.
+*        Implementación y forma base del pico y los
+*        arcos de circunferencia para mostrar el camino
 *
 *************************************************************/
-
-#include <iostream>
-#include "Figuras.hpp"
-#include<math.h>
-#include "src/Klondike.hpp"
-#include <list>
 #ifdef __APPLE__
 #include "GLUT/glut.h"
 #else
 #include "GL/glut.h"
 #endif
+
+#include <iostream>
+#include "Figuras.hpp"
+#include <math.h>
+#include "Klondike.hpp"
+#include <list>
 
 void Figuras::setColor(Colors col){
   switch(col){
@@ -61,6 +62,13 @@ void Figuras::setColor(Colors col){
 
     break;
   }
+}
+
+Colors Figuras::getColor(){
+  if (Color[0] == 1.0f) return Colors::RED;
+  if (Color[1] == 1.0f) return Colors::GREEN;
+  if (Color[2] == 1.0f) return Colors::BLUE;
+  return Colors::VOID;
 }
 
 Minero::Minero(){
@@ -285,10 +293,6 @@ void Plano::draw(int x, int y){
   glEnable(GL_LIGHTING);
 }
 
-void Arco::setlist(Klondike lab){
-   solution = lab.solve(Point((SIZE-1)/2,(SIZE-1)/2));
-}
-  
 void Arco::drawArc( std::list <Point> &solution, int adv){
    glDisable(GL_LIGHTING);
    if (!solution.empty()){
@@ -296,7 +300,7 @@ void Arco::drawArc( std::list <Point> &solution, int adv){
       glColor3f(1.0, 1.0, 0.0);
       glBegin(GL_LINE_STRIP);
       int i =0;
-      for (auto sol = solution.begin(); sol != solution.end(); ++sol, i++) {
+      for (auto sol = solution.begin(); sol != --solution.end(); ++sol, i++) {
          double x1 = -0.144f+(sol->y-11.0)*0.422;
          double x2 = -0.144f+(std::next(sol)->y-11.0)*0.422;
          double y1 = -0.190f+(11.0-sol->x)*0.422;
@@ -310,8 +314,7 @@ void Arco::drawArc( std::list <Point> &solution, int adv){
             glVertex3f(x,y,z);
          }
       }
-   glEnd(); 
+   glEnd();
    }
    glEnable(GL_LIGHTING);
-} 
-  
+}
