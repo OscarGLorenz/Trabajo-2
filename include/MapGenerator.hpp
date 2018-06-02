@@ -12,9 +12,17 @@
 
 #include <random>
 #include <list>
+#include <string>
 
 #include "Klondike.hpp"
+
+#ifdef __APPLE__
+#include "GLUT/glut.h"
+#else
+#define GLUT_DISABLE_ATEXIT_HACK
 #include "GL/glut.h"
+#endif
+
 
 #define WIDTH 900 // Ancho de la imagen
 #define HEIGHT 1074 // Alto de la imagen
@@ -78,11 +86,24 @@ public:
    */
   void displayMap(GLuint texture);
 
+  /*
+   * Función: getCmdPath
+   * --------------------------------------------------------
+   *  Actualiza la ruta donde esta el ejecutable, para encontrar las
+   *  imagenes correctamente
+   *
+   *  argv: Argumentos de ejecución del main
+   *
+   *  resultado:  ruta al ejecutable
+   */
+  void getCmdPath(char ** argv);
+
 private:
   Klondike * lab; // Referencia al objeto que contiene el mapa
   std::list<Point> path; // Auxiliar: Camino a la salida
   std::list<Point> ady; // Auxiliar: Casillas adyacentes
   std::default_random_engine generator; // Generador de número aleatorios
+  std::string relative_path; // Ruta al ejecutable
   bool original; // Flag para ver si estamos usando el mapa original
 
   /*

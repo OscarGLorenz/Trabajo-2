@@ -8,6 +8,14 @@
 *
 * AUTOR :    Óscar García Lorenz
 ******************************************************************************/
+#ifdef __APPLE__
+#include "GLUT/glut.h"
+#elif __unix__
+#include <GL/glut.h>
+#else
+#define GLUT_DISABLE_ATEXIT_HACK
+#include "GL/glut.h"
+#endif
 
 #include <algorithm>
 #include <chrono>
@@ -34,7 +42,7 @@ int MapGenerator::checkPath(Point point, bool write, unsigned int minMoves) {
   // Escoger número de movimiento de forma aleatoria
   lab->setMap(point, distr(generator));
   // Obtener adyacentes
-  ady = lab->adyacent(point);
+  ady = lab->adjacent(point);
 
   // Comprobar que los adyacentes cumplen las siguientes normas
   for (std::list<Point>::iterator it = ady.begin(); it != ady.end();++it){
@@ -90,7 +98,7 @@ void MapGenerator::random(unsigned int minMoves) {
       // Mirar el camino desde el primero al penúltimo
       for (auto p = path.begin(); p != --path.end(); ++p) {
         //Obtener adyacentes
-        auto a = lab->adyacent(*p);
+        auto a = lab->adjacent(*p);
         // Subir la bandera si el camino se cruza
         isPath |= (std::find(a.begin(),a.end(),*it) != a.end());
       }
@@ -121,7 +129,7 @@ void MapGenerator::createMap() {
 
   // Abrir plantilla
   std::fstream input;
-  std::string file = std::string(RELATIVE_PATH) + std::string(EMPTY_MAP);
+  std::string file = relative_path + std::string(RELATIVE_PATH) + std::string(EMPTY_MAP);
   input.open (file, std::fstream::in | std::fstream::binary);
 
   // Saltar cabecera del bmp
@@ -149,6 +157,7 @@ void MapGenerator::createMap() {
 
         // Generar nombre del archivo
         std::string str;
+        str += relative_path;
         str += RELATIVE_PATH;
         str.push_back( (char) lab->getMap(Point(b,a)) + '0');
         if (a == 11 && b == 11) // El del centro va al revés
@@ -216,7 +225,7 @@ void MapGenerator::createMap() {
 
   // Abrir archivo destino
   std::fstream output;
-  file = std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
+  file = relative_path + std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
   output.open (file, std::fstream::out | std::fstream::binary);
 
   // Escribir cabecera
@@ -240,9 +249,9 @@ GLuint MapGenerator::loadMap() {
   std::fstream file; // Archivo
   std::string file_str;
   if (original){
-    file_str = std::string(RELATIVE_PATH) + std::string(ORIGINAL_MAP);
+    file_str = relative_path + std::string(RELATIVE_PATH) + std::string(ORIGINAL_MAP);
   } else {
-    file_str = std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
+    file_str = relative_path + std::string(RELATIVE_PATH) + std::string(OUTPUT_MAP);
   }
 
   file.open (file_str, std::fstream::in | std::fstream::binary);
@@ -294,4 +303,23 @@ void MapGenerator::displayMap(GLuint texture) {
   glEnd();
   glFlush();
   glDisable(GL_TEXTURE_2D);
+}
+
+void MapGenerator::getCmdPath(char ** argv) {
+  std::string str(argv[0]);
+
+  if (str[0] == '.')
+  str.erase(0,2);
+
+  #ifdef _WIN32
+  std::size_t found = str.rfind(std::string(1, '\\'));
+  #else
+  std::size_t found = str.rfind(std::string(1, '/'));
+  #endif
+  if (found!=std::string::npos)
+  str.erase(found+1, str.length());
+  else
+  str.clear();
+
+  relative_path = str;
 }

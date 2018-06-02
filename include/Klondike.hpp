@@ -67,7 +67,7 @@ class SearchResult {
 public:
   SearchResult(Point p, std::list<Point> l, int d);
   Point from; // Posición actual
-  std::list<Point> adyacent; // Opciones
+  std::list<Point> adjacent; // Opciones
   int distance; // Distancia a esas nuevas opciones
 };
 
@@ -101,7 +101,7 @@ public:
   std::list<Point> solve(Point start, std::vector<SearchResult> * search = nullptr);
 
   /*
-   * Función: adyacent
+   * Función: adjacent
    * --------------------------------------------------------
    *   Calcula las casillas accesibles desde una dada
    *
@@ -109,7 +109,7 @@ public:
    *
    *   resultado: lista de puntos con las casillas posibles desde la dada
    */
-  std::list<Point> adyacent(Point now);
+  std::list<Point> adjacent(Point now);
 
   /*
    * Función: setDist
