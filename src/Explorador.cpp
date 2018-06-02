@@ -58,6 +58,7 @@ Minero Jack;
 Cuadro Azul;
 Plano Base;
 Colors Casillas[23][23];
+bool visited[23][23];
 
 //PRUEBAS MOV
 // Casilla del mapa
@@ -77,10 +78,10 @@ void OnDibuja(void) {
   Jack.draw(ox,oy);
 
   for(i=0;i<23;i++){
-     for(j=0;j<23;j++){
-        Azul.setColor(Casillas[i][j]);
-        Azul.draw(i,j);
-     }
+    for(j=0;j<23;j++){
+      Azul.setColor(Casillas[i][j]);
+      Azul.draw(i,j);
+    }
   }
 
   glDisable(GL_LIGHTING);
@@ -110,7 +111,7 @@ void OnDibuja(void) {
   camera.look2D();
 
   for (auto &b : Button::Buttons)
-    b.draw();
+  b.draw();
 
   camera.look3D();
 
@@ -123,13 +124,13 @@ void OnMouseBtn(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     for (auto &b : Button::Buttons) {
       if(b.press(x,y))
-        return;
+      return;
     }
 
     camera.moveMode(true,x,y);
   } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
     for (auto &b : Button::Buttons)
-      b.release(x,y);
+    b.release(x,y);
 
     camera.moveMode(false,x,y);
   } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
@@ -149,63 +150,27 @@ void OnMouseMove(int x, int y) {
 }
 
 void OnMotion(int x, int y) {
-
-  /*
-  *	if the mouse moved over the control
-  */
   for (auto& b : Button::Buttons) {
     b.motion(x,y);
   }
 }
-// Al pulsar una tecla
+
 void OnKeyboardDown(unsigned char key, int x, int y) {
-  Direction c = Direction::NONE;
-  // Casillas posibles
-  std::list<Point> ady = lab.adyacent(Point(ox,oy));
-  // Detectar tecla
-  switch(key) {
-    case ESC:     exit(1);
-    case 'W':
-    case 'w': c = Direction::NORTH; break;
-    case 'D':
-    case 'd': c = Direction::EAST; break;
-    case 'X':
-    case 'x': c = Direction::SOUTH; break;
-    case 'A':
-    case 'a': c = Direction::WEST; break;
-    case 'Q':
-    case 'q': c = Direction::NORTHWEST; break;
-    case 'E':
-    case 'e': c = Direction::NORTHEAST; break;
-    case 'Z':
-    case 'z': c = Direction::SOUTHWEST; break;
-    case 'C':
-    case 'c': c = Direction::SOUTHEAST; break;
-
-  }
-  // Buscar si es un movimiento posible
-  for (std::list<Point>::const_iterator it = ady.begin(); it != ady.end(); ++it){
-    if (it->dir == c) {
-      // Mover muñeco
-      ox = it->x;
-      oy = it->y;
-    }
-  }
-
+  if (key == ESC)     exit(1);
 }
 
- void myLogic(){
+void myLogic(){
   static int status = 1;
 
- if(Jack.position[4]>=20 && status ==1) status=0;
- if(Jack.position[4]<=-20 && status == 0) status=1;
+  if(Jack.position[4]>=20 && status ==1) status=0;
+  if(Jack.position[4]<=-20 && status == 0) status=1;
   switch(status){
-     case 1:
-         Jack.position[4]+=2.0; break;
-     case 0:
-         Jack.position[4]-=2.0; break;
+    case 1:
+    Jack.position[4]+=2.0; break;
+    case 0:
+    Jack.position[4]-=2.0; break;
   }
- }
+}
 
 
 int main(int argc,char* argv[]) {
@@ -243,17 +208,23 @@ int main(int argc,char* argv[]) {
 
   // Carga las casillas con sus valores iniciales (no visitado)
   for(int i=0; i<23; i++){
-     for(int j=0; j<23; j++){
-        if(MAPA[i][j]<=0)
-         Casillas[i][j]=Colors::VOID;
-        else
-           Casillas[i][j]=Colors::RED;
-     }
+    for(int j=0; j<23; j++){
+      if(MAPA[i][j]<=0)
+      Casillas[i][j]=Colors::VOID;
+      else
+      Casillas[i][j]=Colors::RED;
+    }
   }
 
   Button::Buttons.push_back(Button(5,5, 100,25, "REINICIAR", [&](){
-    ox=11;
-    oy=11;
+    oy=ox=11;
+    for (int i = 0; i < 23; i++) {
+      for (int j = 0; j < 23; j++) {
+        visited[i][j] = false;
+        if (Casillas[i][j] != Colors::VOID)
+        Casillas[i][j] = Colors::RED;
+      }
+    }
   }));
 
   Button::Buttons.push_back(Button(5,40, 150,25, "GENERAR MAPA NUEVO", [&](){
@@ -264,6 +235,13 @@ int main(int argc,char* argv[]) {
     if (!solution.empty()) {
       solution.empty();
       solution = lab.solve(Point(ox,oy),&v);
+    }
+    for (int i = 0; i < 23; i++) {
+      for (int j = 0; j < 23; j++) {
+        visited[i][j] = false;
+        if (Casillas[i][j] != Colors::VOID)
+        Casillas[i][j] = Colors::RED;
+      }
     }
   }));
 
@@ -279,14 +257,71 @@ int main(int argc,char* argv[]) {
   Button::Buttons.push_back(Button(335,5, 100,25, "VER ALGORITMO", [&](){
 
   }));
-  Button::Buttons.push_back(Button(445,5, 120,25, "MODO INTERACTIVO", [&](){
-
-  }));
-
-
   Button::Buttons.push_back(Button(690,5, 100,25, "INSTRUCCIONES", [&](){
 
   }));
+
+  auto search_ady =  [&](Direction c){
+    std::list<Point> ady = lab.adyacent(Point(ox,oy));
+    for (auto it = ady.begin(); it != ady.end(); ++it){
+      if (it->dir == c) {
+        // Mover muñeco
+        ox = it->x;
+        oy = it->y;
+        visited[it->x][it->y] = true;
+      }
+    }
+    for (int i = 0; i < 23; i++) {
+      for (int j = 0; j < 23; j++) {
+        if(visited[i][j])
+        Casillas[i][j] = Colors::GREEN;
+
+        if (Casillas[i][j] == Colors::BLUE)
+        Casillas[i][j] = Colors::RED;
+      }
+    }
+    ady = lab.adyacent(Point(ox,oy));
+    for (auto it = ady.begin(); it != ady.end(); ++it){
+      Casillas[it->x][it->y] = Colors::BLUE;
+    }
+
+  };
+
+  Button::Buttons.push_back(Button(445,5, 120,25, "MODO INTERACTIVO", [&](){
+    static bool interactive = true;
+    if (interactive) {
+      Button::Buttons.push_back(Button(700,100, 25,25, "N", [&](){
+        search_ady(Direction::NORTH);
+      }));
+      Button::Buttons.push_back(Button(730,130, 25,25, "E", [&](){
+        search_ady(Direction::EAST);
+      }));
+      Button::Buttons.push_back(Button(670,130, 25,25, "W", [&](){
+        search_ady(Direction::WEST);
+      }));
+      Button::Buttons.push_back(Button(700,160, 25,25, "S", [&](){
+        search_ady(Direction::SOUTH);
+      }));
+      Button::Buttons.push_back(Button(670,100, 25,25, "NW", [&](){
+        search_ady(Direction::NORTHWEST);
+      }));
+      Button::Buttons.push_back(Button(730,160, 25,25, "SE", [&](){
+        search_ady(Direction::SOUTHEAST);
+      }));
+      Button::Buttons.push_back(Button(670,160, 25,25, "SW", [&](){
+        search_ady(Direction::SOUTHWEST);
+      }));
+      Button::Buttons.push_back(Button(730,100, 25,25, "NE", [&](){
+        search_ady(Direction::SOUTHWEST);
+      }));
+    } else {
+      Button::Buttons.erase(Button::Buttons.end()-=8, Button::Buttons.end());
+    }
+    interactive = !interactive;
+  }));
+
+
+
 
 
   // bucle del programa
