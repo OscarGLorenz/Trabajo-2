@@ -21,7 +21,9 @@
 
 #include <iostream>
 #include "Figuras.hpp"
-
+#include<math.h>
+#include "src/Klondike.hpp"
+#include <list>
 #ifdef __APPLE__
 #include "GLUT/glut.h"
 #else
@@ -282,3 +284,34 @@ void Plano::draw(int x, int y){
   glEnd();
   glEnable(GL_LIGHTING);
 }
+
+void Arco::setlist(Klondike lab){
+   solution = lab.solve(Point((SIZE-1)/2,(SIZE-1)/2));
+}
+  
+void Arco::drawArc( std::list <Point> &solution, int adv){
+   glDisable(GL_LIGHTING);
+   if (!solution.empty()){
+      glLineWidth(3.5);
+      glColor3f(1.0, 1.0, 0.0);
+      glBegin(GL_LINE_STRIP);
+      int i =0;
+      for (auto sol = solution.begin(); sol != solution.end(); ++sol, i++) {
+         double x1 = -0.144f+(sol->y-11.0)*0.422;
+         double x2 = -0.144f+(std::next(sol)->y-11.0)*0.422;
+         double y1 = -0.190f+(11.0-sol->x)*0.422;
+         double y2 = -0.190f+(11.0-std::next(sol)->x)*0.422;
+
+         for (int t = 0; t <= 20 && t+20*i < adv; t++) {
+            double alpha = (double)t*M_PI/20.0;
+            double x = (x1-x2)/2.0 * cos(alpha) + (x1+x2)/2.0;
+            double y = (y1-y2)/2.0 * cos(alpha) + (y1+y2)/2.0;
+            double z = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))/2.0 * sin(alpha);
+            glVertex3f(x,y,z);
+         }
+      }
+   glEnd(); 
+   }
+   glEnable(GL_LIGHTING);
+} 
+  

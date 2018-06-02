@@ -177,4 +177,43 @@ public:
   void draw(int ,int);
 };
 
+/*
+* Clase: Arco
+* --------------------------------------------------------------
+*
+* Clase que contiene los arcos para mostrar la solución.
+*
+* --------------------------------------------------------------
+* Atributo: solution
+* --------------------------------------------------------------
+*
+* Lista que contiene la solución final 
+*
+* --------------------------------------------------------------
+* Método: setList
+* --------------------------------------------------------------
+*
+* Actualiza el paŕametro solution con la solución final
+*
+* --------------------------------------------------------------
+* Método drawArc 
+* --------------------------------------------------------------
+*
+* Dibuja la solución final por medio de arcos que se van 
+* dibujando en orden para mostrar el camino a la solución.
+* 
+*
+* --------------------------------------------------------------
+*/
+class Arco {
+     public:
+     std::list<Point> solution;
+     void setList(Klondike);
+     void drawArc( std::list<Point> &solution, int);
+  
+  
+  };
+
+
+
 #endif
