@@ -16,7 +16,7 @@
 #include <limits>
 #include <list>
 
-class std::numeric_limits<int>; // Forward declaration, máximo de los enteros
+template<> class std::numeric_limits<int>; // Forward declaration, máximo de los enteros
 
 Point::Point(short X, short Y) : x(X), y(Y) {}
 Point::Point(short X, short Y, Direction d) : x(X), y(Y), dir(d) {}
@@ -64,7 +64,7 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
     if(s) steps.clear(); // Reiniciar el auxiliar en modo pasos
 
     // Obtener las posibles casillas a las que se puede ir
-    std::list<Point> ady = adyacent(now);
+    std::list<Point> ady = adjacent(now);
     // Recorrer todas las casillas adyacentes
     for (auto it = ady.begin(); it != ady.end(); ++it){
 
@@ -111,7 +111,7 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
           if (dist[i][j] == c-1) {
 
             // Obtener casillas adyacentes
-            std::list<Point> ady = adyacent(Point(i,j));
+            std::list<Point> ady = adjacent(Point(i,j));
 
             // Busca si esta casilla tiene como adyacente a path.front()
             auto search = std::find(ady.begin(),ady.end(),path.front());
@@ -156,7 +156,7 @@ void Klondike::setMap(Point p, short newMap) {
   map[p.x][p.y] = newMap;
 }
 
-std::list<Point> Klondike::adyacent(Point now) {
+std::list<Point> Klondike::adjacent(Point now) {
   std::list<Point> ady; // Lista de casillas adyacentes
   short i = now.x;
   short j = now.y;
@@ -249,4 +249,4 @@ std::list<Point> Klondike::adyacent(Point now) {
 }
 
 SearchResult::SearchResult(Point p, std::list<Point> l, int d) :
-from(p), adyacent(l), distance(d){}
+from(p), adjacent(l), distance(d){}
