@@ -13,10 +13,7 @@
 #include "Klondike.hpp"
 
 #include <algorithm>
-#include <limits>
 #include <list>
-
-template<> class std::numeric_limits<int>; // Forward declaration, máximo de los enteros
 
 Point::Point(short X, short Y) : x(X), y(Y) {}
 Point::Point(short X, short Y, Direction d) : x(X), y(Y), dir(d) {}
@@ -34,7 +31,7 @@ Klondike::Klondike(short klondikeMap[][SIZE]) {
   for (int i = 0; i < SIZE; i++) {
     for (int j = 0; j < SIZE; j++) {
       map[i][j] = klondikeMap[i][j]; // Guardar mapa
-      dist[i][j] = std::numeric_limits<int>::max(); // Poner distancia máxima
+      dist[i][j] = 10e5; // Poner distancia máxima
     }
   }
 }
@@ -42,7 +39,7 @@ Klondike::Klondike(short klondikeMap[][SIZE]) {
 std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_search) {
   for (int i = 0; i < SIZE; i++) {
     for (int j = 0; j < SIZE; j++) {
-      dist[i][j] = std::numeric_limits<int>::max(); // Poner distancia máxima
+      dist[i][j] =  10e5; // Poner distancia máxima
     }
   }
 
@@ -69,7 +66,7 @@ std::list<Point> Klondike::solve(Point start, std::vector<SearchResult> * v_sear
     for (auto it = ady.begin(); it != ady.end(); ++it){
 
       // Si no ha sido visitada (coste = maximo) y no esta fuera del mapa
-      if (getDist(*it) == std::numeric_limits<int>::max())  {
+      if (getDist(*it) ==  10e5)  {
 
         setDist(*it, getDist(now) + 1); // Actualizar distancia
         sol.push_back(*it); // Añadir a la lista principal

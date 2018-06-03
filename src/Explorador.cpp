@@ -69,23 +69,9 @@ bool instructions = false; // Mostrar instrucciones
 bool exit_flag = true; // Variable auxiliar para cortar los hilos adicionales
 
 int adv = 0; // Variable de control para mostrar los arcos
-// Hilo para controlar los arcos
-std::thread advance([&](){
-  while(exit_flag) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    adv++;
-  }
-});
 
 unsigned int k =0; // Control del modo algoritmo
 bool algoritmmode = true; // Modo algoritmo activado
-// Hilo para controlar el avance del algoritmo
-std::thread extra([&](){
-  while(exit_flag) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    k++;
-  }
-});
 
 // Función para mostrar texto en la GUI
 void font(void *font,unsigned char *text,int x,int y) {
@@ -230,8 +216,6 @@ void onMotion(int x, int y) {
 void onKeyboardDown(unsigned char key, int x, int y) {
   if (key == ESC)    {
     exit_flag = false;
-    extra.join();
-    advance.join();
     exit(1);
   }
 }
@@ -412,6 +396,22 @@ int main(int argc,char* argv[]) {
     interactive = !interactive;
   }));
 
+  // Hilo para controlar los arcos
+  std::thread advance([&](){
+    while(exit_flag) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      adv++;
+    }
+  });
+  // Hilo para controlar el avance del algoritmo
+  std::thread extra([&](){
+    while(exit_flag) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      k++;
+    }
+  });
+
+  reset();
   // bucle del programa
   glutMainLoop();
 
