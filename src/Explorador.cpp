@@ -388,7 +388,7 @@ int main(int argc,char* argv[]) {
         search_ady(Direction::SOUTHWEST);
       }));
       Button::Buttons.push_back(Button(730,100, 25,25, "NE", [&](){
-        search_ady(Direction::SOUTHEAST);
+        search_ady(Direction::NORTHEAST);
       }));
     } else {
       Button::Buttons.erase(Button::Buttons.end()-=8, Button::Buttons.end());
